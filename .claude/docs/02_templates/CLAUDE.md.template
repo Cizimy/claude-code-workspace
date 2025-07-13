@@ -1,0 +1,268 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+<!-- プロジェクトの概要をここに記述 -->
+[PROJECT_NAME] は [PROJECT_DESCRIPTION] を目的とした [PROJECT_TYPE] プロジェクトです。
+
+**システム状況**:
+- 🎯 **主要目標**: [MAIN_OBJECTIVE]
+- 🏗️ **アーキテクチャ**: [ARCHITECTURE_TYPE]
+- 🧪 **開発手法**: テスト駆動開発（TDD）
+- 📏 **設計原則**: YAGNI（You Aren't Gonna Need It）
+
+## 🏛️ プロジェクト憲法
+
+### 核心原則（絶対遵守）
+
+1. **🧪 テスト駆動開発（TDD）**
+   - **実装前にテストを書く**: 新機能・修正は必ずテストから開始
+   - **Red → Green → Refactor**: 失敗→成功→改善のサイクルを厳守
+   - **テストなしコード変更禁止**: 既存コードの変更は対応するテスト更新必須
+
+2. **📏 YAGNI原則（必要最小限）**
+   - **現在必要なもののみ実装**: 「将来必要かも」での実装禁止
+   - **推測による機能追加禁止**: 明確な要求のないコードは書かない
+   - **Simple is Best**: 可能な限りシンプルな解決策を採用
+
+3. **🛡️ 品質ガード**
+   - **自動Hooks有効**: PreTool/PostTool/Stop フックによる自動チェック
+   - **カバレッジ維持**: テストカバレッジ [MIN_COVERAGE]% 以上を維持
+   - **未使用コード禁止**: 使用されない関数・変数の残存禁止
+
+### 禁止事項（Violations）
+
+❌ **絶対禁止**:
+- テストを書かずに実装コードを変更する
+- 要求にない機能や設定を追加する
+- 未使用の関数・クラス・変数を残す
+- 過度な抽象化や汎用化を行う
+- エラーハンドリングを省略する
+
+⚠️ **制限事項**:
+- 一度に大量の変更を行う（小さなコミット単位を維持）
+- 複数の関心事を混在させる（単一責任原則）
+- 外部依存を無計画に追加する
+
+## 🏗️ アーキテクチャ
+
+### ディレクトリ構造
+```
+[PROJECT_ROOT]/
+├── src/                     # ソースコード
+│   ├── [MODULE_1]/         # [MODULE_1_DESCRIPTION]
+│   ├── [MODULE_2]/         # [MODULE_2_DESCRIPTION]
+│   └── utils/              # 共通ユーティリティ
+├── tests/                   # テストコード
+│   ├── unit/               # 単体テスト
+│   ├── integration/        # 統合テスト
+│   └── fixtures/           # テストデータ
+├── docs/                    # ドキュメント
+├── config/                  # 設定ファイル
+└── [PROJECT_SPECIFIC_DIRS]  # プロジェクト固有ディレクトリ
+```
+
+### 技術スタック
+- **言語**: [PROGRAMMING_LANGUAGE]
+- **フレームワーク**: [FRAMEWORKS]
+- **テストフレームワーク**: [TEST_FRAMEWORK]
+- **依存管理**: [DEPENDENCY_MANAGEMENT]
+- **CI/CD**: GitHub Actions + Claude Code
+
+## 🔧 開発パターン
+
+### 標準的なワークフロー
+```bash
+# 1. Issue駆動で開発開始
+# GitHub Issue作成 → Claude Code呼び出し
+
+# 2. TDDサイクル実行
+# Test First → Implementation → Refactor
+
+# 3. 品質チェック
+# Hooks自動実行 → カバレッジ確認 → 未使用コード除去
+
+# 4. PR作成・レビュー
+# 自動PR作成 → CI実行 → マージ
+```
+
+### コーディング規約
+```[LANGUAGE]
+# [言語固有のコーディング例]
+# 例: Python
+def calculate_something(input_data: str) -> int:
+    """
+    明確な目的の関数：引数・戻り値・処理内容が明確
+    
+    Args:
+        input_data: 処理対象のデータ
+        
+    Returns:
+        処理結果の数値
+        
+    Raises:
+        ValueError: 不正な入力の場合
+    """
+    if not input_data:
+        raise ValueError("Input data cannot be empty")
+    
+    # 明確で読みやすい実装
+    return len(input_data.strip())
+```
+
+### エラーハンドリングパターン
+```[LANGUAGE]
+# プロジェクト標準のエラーハンドリング
+try:
+    result = risky_operation()
+except SpecificException as e:
+    logger.error(f"Operation failed: {e}")
+    # 適切な回復処理またはfail-fast
+    raise ProcessingError(f"Failed to process: {e}") from e
+```
+
+## 🧪 テスト戦略
+
+### テスト分類
+- **Unit Tests**: 個別関数・クラスの動作確認
+- **Integration Tests**: モジュール間連携の確認
+- **End-to-End Tests**: 全体フローの動作確認
+
+### テスト要求事項
+```[LANGUAGE]
+# テストの書き方例
+def test_calculate_something_valid_input():
+    """正常入力時の動作テスト"""
+    # Arrange
+    input_data = "test data"
+    expected = 9
+    
+    # Act
+    result = calculate_something(input_data)
+    
+    # Assert
+    assert result == expected
+
+def test_calculate_something_empty_input():
+    """異常入力時のエラーハンドリングテスト"""
+    with pytest.raises(ValueError, match="Input data cannot be empty"):
+        calculate_something("")
+```
+
+### カバレッジ要求
+- **最小カバレッジ**: [MIN_COVERAGE]%
+- **新規コード**: 100%カバレッジ必須
+- **レガシーコード**: 段階的改善
+
+## 🚀 開発コマンド
+
+### テスト実行
+```bash
+# 全テスト実行
+[TEST_COMMAND]
+
+# カバレッジ付きテスト
+[COVERAGE_COMMAND]
+
+# 特定テストのみ
+[SPECIFIC_TEST_COMMAND]
+```
+
+### 品質チェック
+```bash
+# Lint実行
+[LINT_COMMAND]
+
+# フォーマット実行
+[FORMAT_COMMAND]
+
+# 型チェック（該当言語）
+[TYPE_CHECK_COMMAND]
+```
+
+### 依存関係管理
+```bash
+# 依存関係インストール
+[INSTALL_COMMAND]
+
+# 依存関係更新
+[UPDATE_COMMAND]
+
+# セキュリティチェック
+[SECURITY_CHECK_COMMAND]
+```
+
+## 🔗 依存関係・外部連携
+
+### 必須依存関係
+- [DEPENDENCY_1]: [PURPOSE]
+- [DEPENDENCY_2]: [PURPOSE]
+
+### 外部API・サービス
+- [EXTERNAL_SERVICE_1]: [USAGE_DESCRIPTION]
+- [EXTERNAL_SERVICE_2]: [USAGE_DESCRIPTION]
+
+### 環境要求
+- [RUNTIME_VERSION]: [MINIMUM_VERSION]
+- [OS_REQUIREMENTS]
+- [HARDWARE_REQUIREMENTS]
+
+## 📋 プロジェクト固有ルール
+
+### [カスタムルール1]
+[具体的な説明]
+
+### [カスタムルール2]
+[具体的な説明]
+
+### [カスタムルール3]
+[具体的な説明]
+
+## 🚨 トラブルシューティング
+
+### よくある問題
+| 症状 | 原因 | 解決策 |
+|------|------|--------|
+| [COMMON_ISSUE_1] | [CAUSE_1] | [SOLUTION_1] |
+| [COMMON_ISSUE_2] | [CAUSE_2] | [SOLUTION_2] |
+
+### デバッグ方法
+```bash
+# ログ確認
+[LOG_COMMAND]
+
+# 設定確認
+[CONFIG_CHECK_COMMAND]
+
+# 依存関係確認
+[DEPENDENCY_CHECK_COMMAND]
+```
+
+## 📚 関連ドキュメント
+
+- **[アーキテクチャ文書]**: [LINK_OR_PATH]
+- **[API仕様書]**: [LINK_OR_PATH]
+- **[デプロイメント手順]**: [LINK_OR_PATH]
+- **[ワークスペース共通ルール]**: [../../../CLAUDE.md](../../../CLAUDE.md)
+
+---
+
+## 🎯 成功指標
+
+### 品質メトリクス
+- テストカバレッジ: [MIN_COVERAGE]% 以上
+- バグ発生率: [TARGET_BUG_RATE] 以下
+- デプロイ成功率: [TARGET_DEPLOY_SUCCESS_RATE]% 以上
+
+### 開発効率
+- 機能追加時間: [TARGET_FEATURE_TIME]
+- バグ修正時間: [TARGET_BUGFIX_TIME]
+- レビュー時間: [TARGET_REVIEW_TIME]
+
+---
+
+*このCLAUDE.mdは[PROJECT_NAME]プロジェクトの憲法です。すべての開発者（人間・AI）はこれらのルールに従ってください。*
+
+*最終更新: [UPDATE_DATE]*

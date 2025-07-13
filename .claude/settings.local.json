@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(cmd /c:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(code --version)",
+      "Bash(where python)",
+      "Bash(sed:*)",
+      "Bash(uv:*)",
+      "Bash(mkdir:*)"
+    ],
+    "deny": []
+  }
+}

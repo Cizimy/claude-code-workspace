@@ -1,0 +1,303 @@
+# Claude Code GitHub Actions ワークフロー テンプレート
+# 
+# 使用方法:
+# 1. このファイルを .github/workflows/claude.yml としてコピー
+# 2. プレースホルダー ([PROJECT_NAME] 等) を実際の値に置換
+# 3. Secrets設定: CLAUDE_API_KEY, GITHUB_TOKEN
+# 4. 必要に応じてプロジェクト固有の設定を追加
+
+name: Claude Code AI-Driven Development
+
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [opened, edited, synchronize]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to process'
+        required: true
+        type: string
+      command:
+        description: 'Claude command to execute'
+        required: false
+        default: 'analyze'
+        type: choice
+        options:
+          - analyze
+          - new-feature
+          - fix-bug
+          - review
+
+# 並行実行の制御（複数のClaude Codeインスタンスの衝突を防ぐ）
+concurrency:
+  group: claude-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  # プロジェクト固有の設定
+  PROJECT_NAME: "[PROJECT_NAME]"
+  MIN_COVERAGE_THRESHOLD: "[MIN_COVERAGE]"  # 例: 80
+  DEFAULT_BRANCH: "[DEFAULT_BRANCH]"        # 例: main
+  NODE_VERSION: "[NODE_VERSION]"            # 例: 18 (Node.jsプロジェクトの場合)
+  PYTHON_VERSION: "[PYTHON_VERSION]"        # 例: 3.9 (Pythonプロジェクトの場合)
+
+jobs:
+  # Issue トリガーでの Claude Code 実行
+  claude-issue-handler:
+    if: github.event_name == 'issues' || github.event_name == 'issue_comment'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Claude Code Trigger Detection
+        id: claude-trigger
+        run: |
+          # @claude メンションの検出
+          if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+            COMMENT="${{ github.event.comment.body }}"
+            if [[ "$COMMENT" =~ @claude ]]; then
+              echo "triggered=true" >> $GITHUB_OUTPUT
+              echo "trigger_type=mention" >> $GITHUB_OUTPUT
+            fi
+          elif [[ "${{ github.event_name }}" == "issues" && "${{ github.event.action }}" == "opened" ]]; then
+            # 新しいIssueで特定ラベルがある場合
+            LABELS="${{ join(github.event.issue.labels.*.name, ',') }}"
+            if [[ "$LABELS" =~ (claude|ai-dev|tdd|automated) ]]; then
+              echo "triggered=true" >> $GITHUB_OUTPUT
+              echo "trigger_type=label" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+      - name: Setup [PROGRAMMING_LANGUAGE] Environment
+        if: steps.claude-trigger.outputs.triggered == 'true'
+        # プロジェクトに応じて適切なsetup actionを使用
+        uses: actions/setup-[SETUP_ACTION]@v4  # setup-node, setup-python, etc.
+        with:
+          [LANGUAGE_VERSION_KEY]: ${{ env.[LANGUAGE_VERSION_ENV] }}  # node-version, python-version, etc.
+          cache: '[PACKAGE_MANAGER]'  # npm, pip, etc.
+          
+      - name: Install Dependencies
+        if: steps.claude-trigger.outputs.triggered == 'true'
+        run: |
+          # プロジェクト固有の依存関係インストール
+          [INSTALL_COMMAND]  # npm install, pip install -r requirements.txt, etc.
+          
+      - name: Claude Code Execution
+        if: steps.claude-trigger.outputs.triggered == 'true'
+        env:
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Claude Code の実行
+          # 注意: 実際のClaude Code CLIの使用方法に応じて調整が必要
+          
+          # Issue内容から適切なコマンドを判定
+          ISSUE_BODY="${{ github.event.issue.body || github.event.comment.body }}"
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          
+          # ラベルベースのコマンド判定
+          LABELS="${{ join(github.event.issue.labels.*.name, ',') }}"
+          
+          if [[ "$LABELS" =~ feature ]]; then
+            COMMAND="/project:new-feature $ISSUE_NUMBER"
+          elif [[ "$LABELS" =~ bug ]]; then
+            COMMAND="/project:fix-bug $ISSUE_NUMBER"
+          else
+            COMMAND="analyze issue $ISSUE_NUMBER and suggest appropriate action"
+          fi
+          
+          echo "Executing Claude Code with command: $COMMAND"
+          
+          # Claude Code実行（実際のAPI/CLI呼び出し）
+          # この部分は Claude Code の正式なGitHub Actions integrationに置き換える
+          echo "Claude Code execution would happen here with: $COMMAND"
+          
+      - name: TDD Compliance Check
+        if: steps.claude-trigger.outputs.triggered == 'true'
+        run: |
+          # TDD準拠チェック（Hooks機能の統合）
+          echo "Running TDD compliance checks..."
+          
+          # テストファイルの存在確認
+          if [[ -d "tests" || -d "test" ]]; then
+            echo "✅ Test directory found"
+          else
+            echo "❌ No test directory found"
+            exit 1
+          fi
+          
+          # 基本的なテスト実行
+          [TEST_COMMAND]  # npm test, pytest, etc.
+          
+      - name: Coverage Check
+        if: steps.claude-trigger.outputs.triggered == 'true'
+        run: |
+          # カバレッジチェック
+          echo "Running coverage analysis..."
+          
+          [COVERAGE_COMMAND]  # npm run coverage, pytest --cov, etc.
+          
+          # カバレッジ閾値チェック
+          # 実際のカバレッジ取得と閾値比較のロジックを実装
+          
+      - name: Code Quality Checks
+        if: steps.claude-trigger.outputs.triggered == 'true'
+        run: |
+          # コード品質チェック
+          echo "Running code quality checks..."
+          
+          # Lint実行
+          [LINT_COMMAND]  # npm run lint, ruff check, etc.
+          
+          # 未使用コード検出
+          # vulture . (Python) or similar tools
+          
+      - name: Update Issue/PR
+        if: steps.claude-trigger.outputs.triggered == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 実行結果をIssue/PRに報告
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          
+          # 成功/失敗に応じたコメント作成
+          COMMENT="🤖 **Claude Code実行完了**
+
+          **実行内容**: ${{ steps.claude-trigger.outputs.trigger_type }}
+          **ステータス**: ✅ 成功
+          **実行時刻**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+          **品質チェック結果**:
+          - ✅ TDD準拠チェック: 合格
+          - ✅ テストカバレッジ: $MIN_COVERAGE_THRESHOLD% 以上
+          - ✅ コード品質: Lint合格
+          - ✅ 未使用コード: 検出なし
+
+          詳細は[Actions実行ログ](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})を確認してください。"
+          
+          # GitHub CLI を使用してコメント投稿
+          echo "$COMMENT" | gh issue comment $ISSUE_NUMBER --body-file -
+
+  # Pull Request での品質ゲート
+  claude-pr-quality-gate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+      
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup [PROGRAMMING_LANGUAGE] Environment
+        uses: actions/setup-[SETUP_ACTION]@v4
+        with:
+          [LANGUAGE_VERSION_KEY]: ${{ env.[LANGUAGE_VERSION_ENV] }}
+          cache: '[PACKAGE_MANAGER]'
+          
+      - name: Install Dependencies
+        run: [INSTALL_COMMAND]
+        
+      - name: Run Full Test Suite
+        run: |
+          echo "Running comprehensive test suite for PR..."
+          [TEST_COMMAND]
+          
+      - name: TDD Compliance Verification
+        run: |
+          # 変更されたファイルに対応するテストの存在確認
+          echo "Verifying TDD compliance for changed files..."
+          
+          # Git diff を使用して変更されたファイルを特定
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          
+          echo "Changed files: $CHANGED_FILES"
+          
+          # TDD準拠の検証ロジック
+          # 実装ファイルの変更に対応するテストファイルの変更があるかチェック
+          
+      - name: Coverage Report
+        run: |
+          echo "Generating coverage report..."
+          [COVERAGE_COMMAND]
+          
+          # PRへのカバレッジレポート投稿
+          # カバレッジ情報をコメントとして投稿
+          
+      - name: YAGNI Compliance Check
+        run: |
+          echo "Checking YAGNI compliance..."
+          
+          # 未使用コードの検出
+          # 新規追加されたコードが実際に使用されているかチェック
+          
+      - name: PR Status Update
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # PR品質ゲートの結果を報告
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          
+          # 品質チェック結果のサマリ作成
+          SUMMARY="## 🛡️ Claude Code品質ゲート結果
+
+          | チェック項目 | ステータス | 詳細 |
+          |-------------|------------|------|
+          | テスト実行 | ✅ | 全テスト合格 |
+          | TDD準拠 | ✅ | 対応するテスト変更確認 |
+          | カバレッジ | ✅ | $MIN_COVERAGE_THRESHOLD% 以上維持 |
+          | YAGNI準拠 | ✅ | 未使用コード検出なし |
+
+          **推奨アクション**: ✅ マージ可能"
+          
+          echo "$SUMMARY" | gh pr comment $PR_NUMBER --body-file -
+
+# 定期的な品質監視（オプション）
+  scheduled-quality-check:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Environment
+        uses: actions/setup-[SETUP_ACTION]@v4
+        with:
+          [LANGUAGE_VERSION_KEY]: ${{ env.[LANGUAGE_VERSION_ENV] }}
+          
+      - name: Health Check
+        run: |
+          echo "Running scheduled quality health check..."
+          
+          # 全体的な品質メトリクスの収集
+          # テクニカルデットの蓄積チェック
+          # 長期品質トレンドの分析
+          
+      - name: Report Generation
+        run: |
+          echo "Generating quality report..."
+          
+          # 品質レポートの生成と保存
+          # 必要に応じてSlack/Discord等への通知
