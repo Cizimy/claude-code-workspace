@@ -8,7 +8,8 @@
       "Bash(where python)",
       "Bash(sed:*)",
       "Bash(uv:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
