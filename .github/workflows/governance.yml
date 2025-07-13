@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'governance/**'
+  workflow_dispatch:
 
 jobs:
   adr-validation:
