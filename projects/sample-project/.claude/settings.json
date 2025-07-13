@@ -1,0 +1,21 @@
+{
+  "extends": "../../.claude/settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(jest:*)",
+      "Bash(eslint:*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "MultiEdit(*)"
+    ]
+  },
+  "hookPaths": [
+    "../../../.claude/hooks",
+    "./hooks_local"
+  ],
+  "projectType": "javascript",
+  "testFramework": "jest",
+  "coverageThreshold": 80
+}
