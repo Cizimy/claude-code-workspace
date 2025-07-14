@@ -53,11 +53,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pre-tool/tdd-guard.sh"
+            "command": "/home/kenic/projects/.claude/hooks/pre-tool/tdd-guard.sh"
           },
           {
             "type": "command",
-            "command": ".claude/hooks/pre-tool/constitution-guard.sh"
+            "command": "/home/kenic/projects/.claude/hooks/pre-tool/constitution-guard.sh"
           }
         ]
       }
@@ -68,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/post-tool/unused-detector.sh"
+            "command": "/home/kenic/projects/.claude/hooks/post-tool/unused-detector.sh"
           }
         ]
       }
@@ -79,7 +79,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/stop/coverage-check.sh"
+            "command": "/home/kenic/projects/.claude/hooks/stop/coverage-check.sh"
           }
         ]
       }
@@ -90,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/notification/sound-notifier.sh"
+            "command": "/home/kenic/projects/.claude/hooks/notification/sound-notifier.sh"
           }
         ]
       }

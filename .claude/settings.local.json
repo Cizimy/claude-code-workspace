@@ -113,7 +113,8 @@
       "Bash(ruff check:*)",
       "Bash(vulture:*)",
       "Bash(coverage --version)",
-      "Bash(../../../.claude/hooks/pre-tool/tdd-guard.sh:*)"
+      "Bash(../../../.claude/hooks/pre-tool/tdd-guard.sh:*)",
+      "Bash(./setup.sh:*)"
     ],
     "deny": []
   }
