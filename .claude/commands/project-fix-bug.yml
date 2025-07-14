@@ -53,7 +53,7 @@ prompt: |
   
   **出力**: 根本原因の特定、バグ発生メカニズムの説明
   
-  ## Step 3: 再現テスト作成 🔴
+  ## Step 3: テスト作成（再現テスト） 🔴
   1. **RED フェーズ**: バグを確実に再現する失敗するテストを作成
   2. 再現テストが期待通り失敗することを確認
   3. テストコードをコミット: `git commit -m "test: Add failing test reproducing bug #{{issue_number}}"`

@@ -162,6 +162,70 @@ EOF
 
 **完了目安**: commit 完了
 
+### 1-3.5. Hook システム依存ツールのインストール
+**タスク**: vulture (Python 未使用コード検出) と pytest (テストフレームワーク) のインストール
+
+**手順**:
+```bash
+# Python 開発環境の確認
+python3 --version  # Python 3.8+ が必要
+pip3 --version     # pip の動作確認
+
+# Hook システム依存ツールのインストール
+pip3 install vulture pytest pytest-cov
+
+# インストール確認
+vulture --version
+pytest --version
+
+# プロジェクト別設定ファイル作成（例: Python プロジェクト用）
+cat > .vulture.txt << 'EOF'
+# vulture 設定: 未使用コード検出の除外設定
+# フレームワーク等で使用される特殊パターンを除外
+
+# Django/Flask 等のフレームワーク関数
+# **/models.py:*  # Django model methods
+# **/views.py:*   # Flask/Django view functions
+
+# テストファイル内の fixture/helper
+tests/*
+test_*
+
+# 設定ファイル内の変数
+settings.py:*
+config.py:*
+EOF
+
+cat > pytest.ini << 'EOF'
+[tool:pytest]
+# pytest 設定: テスト実行・カバレッジ設定
+testpaths = tests
+python_files = test_*.py *_test.py
+python_classes = Test*
+python_functions = test_*
+
+# カバレッジ設定
+addopts = 
+    --cov=src
+    --cov-report=term-missing
+    --cov-report=html
+    --cov-fail-under=60
+    --verbose
+
+# テスト発見パターン
+minversion = 6.0
+markers =
+    slow: marks tests as slow (deselect with '-m "not slow"')
+    integration: marks tests as integration tests
+    unit: marks tests as unit tests
+EOF
+```
+
+**完了目安**: 
+- ✅ vulture, pytest コマンド実行可能
+- ✅ .vulture.txt, pytest.ini 設定ファイル作成
+- ✅ Hook システムでツール不足警告が出ない
+
 ### 1-4. Hooks 雛形スクリプト作成
 **タスク**: 基本的な品質ガード Hook を 3 本作成
 

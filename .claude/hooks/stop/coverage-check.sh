@@ -10,7 +10,7 @@ set -euo pipefail
 # 設定
 readonly SCRIPT_NAME="coverage-check.sh"
 readonly LOG_FILE="/tmp/claude-hooks.log"
-readonly WORKSPACE_ROOT="/c/Users/kenic/Projects"
+readonly WORKSPACE_ROOT="/home/kenic/projects"
 readonly MIN_COVERAGE_THRESHOLD=60  # 最小カバレッジ閾値（%）
 
 # ログ関数

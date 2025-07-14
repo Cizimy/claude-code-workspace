@@ -109,5 +109,12 @@ Claude Codeで実際にファイル編集を行うと、以下のHookが自動�
 1. 実際の開発タスクで Claude を活用
 2. TDD・YAGNI の原則に従った開発フローの体験
 3. Hook による自動品質管理の確認
+4. **[実装検証SOP](03_operations/implementation_verification_sop.md)** で定期的な品質確認
+5. **[改善推奨事項](03_operations/improvement_recommendations.md)** で継続的な改善管理
 
 詳細な使い方は各ディレクトリのドキュメントを参照してください。
+
+## 🔄 継続改善システム
+
+Phase 6として継続改善システムが導入されています：
+- **[ADR-002](../governance/adr/002-continuous-improvement-system.md)**: 改善システムの導入決定

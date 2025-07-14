@@ -7,7 +7,11 @@
 ### 基本運用
 - **[TDD ワークフロー](tdd_workflow.md)** - テスト駆動開発の実践方法
 - **[品質管理](quality_control.md)** - Hook による自動品質管理
+- **[実装検証SOP](implementation_verification_sop.md)** - 実装完了の体系的検証手順
 - **[Issue 駆動開発](issue_driven_development.md)** - GitHub Issue を中心とした開発フロー
+
+### 継続改善
+- **[改善推奨事項追跡](improvement_recommendations.md)** - 検証報告から特定された改善事項の管理
 
 ### 高度な運用
 - **[並行開発管理](parallel_development.md)** - 複数タスクの同時進行

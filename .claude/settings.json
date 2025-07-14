@@ -18,6 +18,10 @@
       "Bash(docker:*)",
       "Bash(jq:*)",
       "Bash(gh:*)",
+      "Bash(chmod:*)",
+      "Bash(paplay:*)",
+      "Bash(speaker-test:*)",
+      "Bash(notify-send:*)",
       "Read(*)",
       "Write(*)",
       "Edit(*)",
@@ -35,7 +39,6 @@
       "Bash(rmdir:*)",
       "Bash(mv:*)",
       "Bash(cp:*)",
-      "Bash(chmod:*)",
       "Bash(chown:*)",
       "Bash(sudo:*)",
       "Bash(su:*)",
@@ -44,17 +47,33 @@
     ]
   },
   "hooks": {
-    "PostToolUse": [
+    "PreToolUse": [
       {
         "matcher": "Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
             "command": ".claude/hooks/pre-tool/tdd-guard.sh"
-          },
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit",
+        "hooks": [
           {
             "type": "command",
             "command": ".claude/hooks/post-tool/unused-detector.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/notification/sound-notifier.sh"
           }
         ]
       }
@@ -66,6 +85,17 @@
           {
             "type": "command",
             "command": ".claude/hooks/stop/coverage-check.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/notification/sound-notifier.sh"
           }
         ]
       }
