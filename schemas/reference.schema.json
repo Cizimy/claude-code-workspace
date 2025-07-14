@@ -1,0 +1,173 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workspace/schemas/reference.schema.json",
+  "title": "Reference Document Schema", 
+  "description": "Extended schema for reference category documents (technical specs, API docs, architecture)",
+  "allOf": [
+    {
+      "$ref": "md-meta.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "category": {
+          "const": "reference"
+        },
+        "technical_domain": {
+          "type": "string",
+          "enum": [
+            "hooks",
+            "commands", 
+            "architecture",
+            "ci-cd",
+            "testing",
+            "security",
+            "database",
+            "api",
+            "frontend",
+            "backend",
+            "devops"
+          ],
+          "description": "Primary technical domain"
+        },
+        "complexity_level": {
+          "type": "string",
+          "enum": ["basic", "intermediate", "advanced", "expert"],
+          "description": "Technical complexity level"
+        },
+        "implementation_status": {
+          "type": "string",
+          "enum": ["design", "prototype", "development", "stable", "deprecated"],
+          "description": "Current implementation status"
+        },
+        "api_version": {
+          "type": "string",
+          "pattern": "^v\\d+(\\.\\d+)*$",
+          "description": "API version if applicable",
+          "examples": ["v1", "v2.1"]
+        },
+        "compatibility": {
+          "type": "object",
+          "properties": {
+            "minimum_version": {"type": "string"},
+            "maximum_version": {"type": "string"},
+            "deprecated_versions": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          },
+          "description": "Version compatibility information"
+        },
+        "code_examples": {
+          "type": "boolean",
+          "description": "Whether document includes code examples"
+        },
+        "external_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "version": {"type": "string"},
+              "required": {"type": "boolean"},
+              "purpose": {"type": "string"}
+            },
+            "required": ["name"]
+          },
+          "maxItems": 20,
+          "description": "External libraries and tools required"
+        },
+        "performance_notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 300
+          },
+          "maxItems": 10,
+          "description": "Performance considerations and recommendations"
+        },
+        "security_considerations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 300
+          },
+          "maxItems": 10,
+          "description": "Security implications and best practices"
+        },
+        "troubleshooting_guide": {
+          "type": "boolean",
+          "description": "Whether document includes troubleshooting section"
+        },
+        "related_specs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": ".*\\.(md|pdf|html)$"
+          },
+          "maxItems": 10,
+          "description": "Related specification documents"
+        },
+        "changelog": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "version": {"type": "string"},
+              "date": {"type": "string", "format": "date"},
+              "changes": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            },
+            "required": ["version", "date", "changes"]
+          },
+          "maxItems": 20,
+          "description": "Version history and changes"
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "title": "Document Complexity Control System Technical Specification",
+      "status": "active",
+      "category": "reference", 
+      "created": "2025-07-14",
+      "updated": "2025-07-14",
+      "tags": ["complexity", "technical-spec", "sqlite", "ci"],
+      "priority": "high",
+      "technical_domain": "architecture",
+      "complexity_level": "advanced",
+      "implementation_status": "development",
+      "version": "1.0",
+      "code_examples": true,
+      "troubleshooting_guide": true,
+      "external_dependencies": [
+        {
+          "name": "SQLite",
+          "version": "3.0+",
+          "required": true,
+          "purpose": "Document metadata storage"
+        },
+        {
+          "name": "Python",
+          "version": "3.9+", 
+          "required": true,
+          "purpose": "Processing scripts"
+        }
+      ],
+      "performance_notes": [
+        "SQLite queries scale linearly with document count",
+        "Front-Matter parsing adds ~10ms per document"
+      ],
+      "security_considerations": [
+        "Validate all Front-Matter input to prevent injection",
+        "Restrict write access to schemas directory"
+      ],
+      "target_audience": ["developer", "expert"]
+    }
+  ]
+}

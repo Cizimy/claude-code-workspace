@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workspace/schemas/operations.schema.json",
+  "title": "Operations Document Schema",
+  "description": "Extended schema for operations category documents (procedures, guides, SOPs)",
+  "allOf": [
+    {
+      "$ref": "md-meta.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "category": {
+          "const": "operations"
+        },
+        "procedure_type": {
+          "type": "string",
+          "enum": ["daily", "weekly", "monthly", "emergency", "adhoc", "maintenance"],
+          "description": "Type of operational procedure"
+        },
+        "automation_level": {
+          "type": "string",
+          "enum": ["manual", "semi-automated", "automated"],
+          "description": "Level of automation for the procedure"
+        },
+        "estimated_duration": {
+          "type": "string",
+          "pattern": "^\\d+\\s*(min|hour|day)s?$",
+          "description": "Estimated time to complete procedure",
+          "examples": ["30 min", "2 hours", "1 day"]
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+          },
+          "maxItems": 10,
+          "description": "Prerequisites before starting the procedure"
+        },
+        "tools_required": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "maxItems": 20,
+          "description": "Tools and software required for the procedure"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["on-demand", "daily", "weekly", "monthly", "quarterly", "annually"],
+          "description": "How often this procedure should be executed"
+        },
+        "criticality": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Business criticality of this procedure"
+        },
+        "rollback_procedure": {
+          "type": "string",
+          "description": "Reference to rollback procedure if available"
+        },
+        "validation_steps": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200
+          },
+          "maxItems": 10,
+          "description": "Steps to validate successful completion"
+        },
+        "related_incidents": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(INC|ISSUE)-\\d+$"
+          },
+          "maxItems": 10,
+          "description": "Related incident or issue numbers"
+        },
+        "maintenance_schedule": {
+          "type": "string",
+          "format": "date",
+          "description": "Next maintenance review date"
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "title": "Document Complexity Monitoring Daily Procedure",
+      "status": "active", 
+      "category": "operations",
+      "created": "2025-07-14",
+      "updated": "2025-07-14",
+      "tags": ["monitoring", "complexity", "daily-ops"],
+      "priority": "medium",
+      "procedure_type": "daily",
+      "automation_level": "semi-automated",
+      "estimated_duration": "15 min",
+      "frequency": "daily",
+      "criticality": "medium",
+      "prerequisites": [
+        "Access to project repository",
+        "Python 3.9+ installed",
+        "SQLite database access"
+      ],
+      "tools_required": [
+        "doc_inventory.py",
+        "sqlite3",
+        "git"
+      ],
+      "validation_steps": [
+        "Verify CSV report generation",
+        "Check complexity hotspots identified",
+        "Confirm Front-Matter coverage metrics"
+      ],
+      "target_audience": ["developer", "admin"]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workspace/schemas/governance.schema.json",
+  "title": "Governance Document Schema",
+  "description": "Extended schema for governance category documents (ADRs, decisions, policies)",
+  "allOf": [
+    {
+      "$ref": "md-meta.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "category": {
+          "const": "governance"
+        },
+        "status": {
+          "enum": ["proposed", "accepted", "rejected", "superseded", "draft"]
+        },
+        "decision_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date when the decision was made"
+        },
+        "review_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Next scheduled review date"
+        },
+        "stakeholders": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "development-team",
+              "governance-committee", 
+              "operations-team",
+              "security-team",
+              "all-teams"
+            ]
+          },
+          "minItems": 1,
+          "description": "Stakeholders involved in governance decision"
+        },
+        "impact_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Impact level of the governance decision"
+        },
+        "implementation_timeline": {
+          "type": "string",
+          "enum": ["immediate", "1-week", "1-month", "1-quarter", "ongoing"],
+          "description": "Expected implementation timeline"
+        },
+        "success_metrics": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200
+          },
+          "maxItems": 10,
+          "description": "Measurable success criteria"
+        },
+        "risks": {
+          "type": "array", 
+          "items": {
+            "type": "object",
+            "properties": {
+              "risk": {"type": "string"},
+              "likelihood": {"enum": ["low", "medium", "high"]},
+              "impact": {"enum": ["low", "medium", "high"]},
+              "mitigation": {"type": "string"}
+            },
+            "required": ["risk", "likelihood", "impact"]
+          },
+          "maxItems": 10,
+          "description": "Identified risks and mitigation strategies"
+        }
+      },
+      "anyOf": [
+        {"required": ["decision_date"]},
+        {"required": ["adr"]}
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "title": "ADR-005: Document Complexity Control System",
+      "status": "accepted",
+      "category": "governance",
+      "created": "2025-07-14",
+      "updated": "2025-07-14",
+      "adr": "005",
+      "decision_date": "2025-07-14",
+      "review_date": "2025-10-14",
+      "tags": ["complexity", "documentation", "quality"],
+      "priority": "medium",
+      "stakeholders": ["development-team", "governance-committee"],
+      "impact_level": "medium",
+      "implementation_timeline": "1-month",
+      "success_metrics": [
+        "Front-Matter coverage >90%",
+        "Document complexity violations <5%",
+        "CI integration completion 100%"
+      ],
+      "depends_on": ["003-ai-perfectionism-prevention-system.md"]
+    }
+  ]
+}

@@ -189,15 +189,64 @@ export CLAUDE_HOOKS_DISABLED=true
 - Focus on module structure validation
 - Manual testing documentation required
 
+## AI完璧主義症候群対策（ADR-003）
+
+### ⚠️ 禁止事項
+- **95%以上の完璧を追求しない**: 95%で十分です
+- **推測実装禁止**: "将来必要かも"で実装しない  
+- **大量ドキュメント作成禁止**: 5ファイル以上の同時作成不可
+- **長期計画作成禁止**: 2026年以降の計画は作成しない
+
+### 🔍 自己チェック必須項目
+作業前に以下を自問してください：
+1. **今すぐ使うか？** → NO なら実装しない
+2. **実証されているか？** → NO なら仮説扱い  
+3. **最もシンプルか？** → NO なら分割検討
+4. **本当に必要か？** → 疑問があれば実装しない
+
+## ドキュメント複雑性制御（ADR-005）
+
+### 📏 文書品質基準
+- **1文書あたりの行数**: 500行以下を推奨
+- **内部リンク数**: 10個以下を推奨  
+- **Front-Matter必須**: 全Markdownファイルにメタデータ付与
+- **分割優先**: 複雑な文書は目的別に分割
+
+### 🏷️ Front-Matter標準フォーマット
+```yaml
+---
+title: "文書タイトル"
+status: "draft|active|deprecated"
+category: "governance|operations|reference|templates|quickstart"
+created: "YYYY-MM-DD"
+updated: "YYYY-MM-DD"
+tags: ["tag1", "tag2"]
+priority: "high|medium|low"
+---
+```
+
+### 📊 複雑性監視ルール
+- **新規文書作成時**: Front-Matter必須、500行制限チェック
+- **文書更新時**: 行数増加監視、リンク整合性確認
+- **CI自動チェック**: スキーマ検証、複雑性メトリクス測定
+- **SQLite統合**: 横断検索・分析による品質管理
+
+### 🚫 ドキュメント複雑性違反時の対処
+1. **500行超過**: セクション分割または別文書化
+2. **リンク過多**: 関連文書への適切な分散
+3. **Front-Matter未設定**: schemas/md-meta.schema.json 準拠で追加
+4. **カテゴリ未分類**: governance/operations/reference/templates/quickstart から選択
+
 ## Related Documentation
 
 - **Governance**: `/governance/README.md` - Decision tracking and ADRs
 - **Commands**: `/.claude/commands/README.md` - Custom command details
 - **Hooks**: `/.claude/hooks/README.md` - Hook implementation details
 - **Templates**: `/.claude/docs/02_templates/` - Reusable templates
+- **Document Complexity**: `/.claude/docs/04_reference/document-complexity-control-system.md` - Technical specifications
 
 ---
 
 *This CLAUDE.md serves as the constitution for AI-driven development in this workspace. All development must follow these principles and use the configured quality guards.*
 
-*Last updated: 2025-01-13*
+*Last updated: 2025-07-14* (Added Document Complexity Control ADR-005)

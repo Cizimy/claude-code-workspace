@@ -1,0 +1,269 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workspace/schemas/md-meta.schema.json",
+  "title": "Claude Code Workspace Document Metadata Schema",
+  "description": "Front-Matter schema for Markdown documents in Claude Code workspace (ADR-005)",
+  "type": "object",
+  "required": ["title", "status", "category", "created", "updated"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "description": "Document title",
+      "examples": ["ADR-005: Document Complexity Control System", "TDD Workflow Guide"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "active", "deprecated", "proposed", "accepted", "rejected", "superseded"],
+      "description": "Document lifecycle status",
+      "examples": ["active", "draft"]
+    },
+    "category": {
+      "type": "string",
+      "enum": ["governance", "operations", "reference", "templates", "quickstart"],
+      "description": "Document category for organization",
+      "examples": ["governance", "operations"]
+    },
+    "created": {
+      "type": "string",
+      "format": "date",
+      "description": "Document creation date (YYYY-MM-DD)",
+      "examples": ["2025-07-14"]
+    },
+    "updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date (YYYY-MM-DD)",
+      "examples": ["2025-07-14"]
+    },
+    "adr": {
+      "type": "string",
+      "pattern": "^[0-9]{3}$",
+      "description": "Related Architecture Decision Record number (3 digits)",
+      "examples": ["005", "003"]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 30,
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "maxItems": 10,
+      "uniqueItems": true,
+      "description": "Classification tags (lowercase, hyphen-separated)",
+      "examples": [["complexity", "governance"], ["tdd", "automation"]]
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "Document priority level",
+      "examples": ["high", "medium"]
+    },
+    "author": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 100,
+      "description": "Author or responsible team",
+      "examples": ["development-team", "governance-committee"]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Document version (semantic versioning)",
+      "examples": ["1.0", "2.1.3"]
+    },
+    "review_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next review date (YYYY-MM-DD)",
+      "examples": ["2025-08-14"]
+    },
+    "decision_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Decision date for governance documents",
+      "examples": ["2025-07-14"]
+    },
+    "stakeholders": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 50
+      },
+      "maxItems": 10,
+      "uniqueItems": true,
+      "description": "Stakeholders involved in the decision",
+      "examples": [["development-team", "governance-committee"]]
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": ".*\\.md$"
+      },
+      "maxItems": 20,
+      "uniqueItems": true,
+      "description": "Dependencies on other documents",
+      "examples": [["003-ai-perfectionism-prevention-system.md"]]
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": ".*\\.md$"
+      },
+      "maxItems": 10,
+      "uniqueItems": true,
+      "description": "Documents replaced by this document",
+      "examples": [["old-complexity-guide.md"]]
+    },
+    "procedure_type": {
+      "type": "string",
+      "enum": ["daily", "weekly", "monthly", "emergency", "adhoc"],
+      "description": "Type of operational procedure (for operations category)",
+      "examples": ["daily", "monthly"]
+    },
+    "automation_level": {
+      "type": "string",
+      "enum": ["manual", "semi-automated", "automated"],
+      "description": "Level of automation for procedures",
+      "examples": ["automated", "semi-automated"]
+    },
+    "technical_domain": {
+      "type": "string",
+      "enum": ["hooks", "commands", "architecture", "ci-cd", "testing", "security"],
+      "description": "Technical domain for reference documents",
+      "examples": ["hooks", "architecture"]
+    },
+    "complexity_level": {
+      "type": "string",
+      "enum": ["basic", "intermediate", "advanced", "expert"],
+      "description": "Technical complexity level",
+      "examples": ["intermediate", "advanced"]
+    },
+    "implementation_status": {
+      "type": "string",
+      "enum": ["design", "prototype", "stable", "deprecated"],
+      "description": "Implementation status for technical documents",
+      "examples": ["stable", "prototype"]
+    },
+    "template_type": {
+      "type": "string",
+      "enum": ["document", "code", "workflow", "checklist"],
+      "description": "Type of template (for templates category)",
+      "examples": ["document", "workflow"]
+    },
+    "target_audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["developer", "admin", "stakeholder", "new-user", "expert"]
+      },
+      "maxItems": 5,
+      "uniqueItems": true,
+      "description": "Target audience for the document",
+      "examples": [["developer", "admin"]]
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "category": {"const": "governance"}
+        }
+      },
+      "then": {
+        "anyOf": [
+          {"required": ["decision_date"]},
+          {"required": ["adr"]}
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "category": {"const": "operations"}
+        }
+      },
+      "then": {
+        "properties": {
+          "procedure_type": true,
+          "automation_level": true
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "category": {"const": "reference"}
+        }
+      },
+      "then": {
+        "properties": {
+          "technical_domain": true,
+          "complexity_level": true
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "category": {"const": "templates"}
+        }
+      },
+      "then": {
+        "properties": {
+          "template_type": true
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "title": "ADR-005: Document Complexity Control System",
+      "status": "accepted",
+      "category": "governance",
+      "created": "2025-07-14",
+      "updated": "2025-07-14",
+      "adr": "005",
+      "tags": ["complexity", "governance", "documentation"],
+      "priority": "medium",
+      "author": "governance-committee",
+      "version": "1.0",
+      "decision_date": "2025-07-14",
+      "stakeholders": ["development-team", "governance-committee"],
+      "depends_on": ["003-ai-perfectionism-prevention-system.md", "004-governance-integration.md"]
+    },
+    {
+      "title": "Document Complexity Monitoring Guide",
+      "status": "active",
+      "category": "operations",
+      "created": "2025-07-14",
+      "updated": "2025-07-14",
+      "tags": ["monitoring", "complexity", "daily-ops"],
+      "priority": "medium",
+      "author": "operations-team",
+      "procedure_type": "daily",
+      "automation_level": "semi-automated",
+      "target_audience": ["developer", "admin"]
+    },
+    {
+      "title": "Hook System Technical Reference",
+      "status": "active",
+      "category": "reference",
+      "created": "2025-07-14",
+      "updated": "2025-07-14",
+      "tags": ["hooks", "technical", "automation"],
+      "priority": "high",
+      "technical_domain": "hooks",
+      "complexity_level": "advanced",
+      "implementation_status": "stable",
+      "target_audience": ["developer", "expert"]
+    }
+  ]
+}
