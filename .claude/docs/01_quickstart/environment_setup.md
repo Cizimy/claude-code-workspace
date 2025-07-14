@@ -165,66 +165,245 @@ EOF
 ### 1-3.5. Hook システム依存ツールのインストール
 **タスク**: vulture (Python 未使用コード検出) と pytest (テストフレームワーク) のインストール
 
+> **重要**: このステップは継続改善システム（Phase 6）により強化されました。 
+> Hook システムの完全動作に必要なツールを確実にインストールします。
+
 **手順**:
+
+#### Python 開発環境の準備
 ```bash
 # Python 開発環境の確認
-python3 --version  # Python 3.8+ が必要
+python3 --version  # Python 3.9+ が必要
 pip3 --version     # pip の動作確認
 
-# Hook システム依存ツールのインストール
-pip3 install vulture pytest pytest-cov
+# 仮想環境の作成（推奨）
+python3 -m venv claude-workspace-env
+source claude-workspace-env/bin/activate  # Linux/macOS
+# claude-workspace-env\Scripts\activate   # Windows
+
+# pip 最新化
+pip install --upgrade pip
+```
+
+#### Hook 依存ツールのインストール
+```bash
+# IMP-001: vulture - Python 未使用コード検出ツール
+pip install vulture
+
+# IMP-002: pytest + pytest-cov - テストフレームワーク・カバレッジ
+pip install pytest pytest-cov
+
+# 追加品質ツール（推奨）
+pip install ruff     # 高速 linter/formatter (Python)
+pip install radon   # 複雑度測定
 
 # インストール確認
-vulture --version
-pytest --version
+vulture --version    # >= 2.7 を確認
+pytest --version     # >= 7.0 を確認
+coverage --version   # カバレッジ測定
+ruff --version       # linter/formatter
+```
 
-# プロジェクト別設定ファイル作成（例: Python プロジェクト用）
-cat > .vulture.txt << 'EOF'
+#### システム全体設定ファイル作成
+```bash
+# 1. vulture 設定: ワークスペース全体用
+cat > .vulture << 'EOF'
 # vulture 設定: 未使用コード検出の除外設定
-# フレームワーク等で使用される特殊パターンを除外
+# Hook システム統合強化 (IMP-001 対応)
 
-# Django/Flask 等のフレームワーク関数
-# **/models.py:*  # Django model methods
-# **/views.py:*   # Flask/Django view functions
+# プロジェクト構造除外
+.claude/
+governance/
+projects/*/venv/
+projects/*/node_modules/
 
-# テストファイル内の fixture/helper
-tests/*
-test_*
+# フレームワーク関数除外
+**/models.py
+**/views.py
+**/settings.py
+**/config.py
 
-# 設定ファイル内の変数
-settings.py:*
-config.py:*
+# テストファイル除外（ヘルパー関数等）
+**/test_*.py
+**/tests/
+**/*_test.py
+**/conftest.py
+
+# VBA プロジェクト除外
+pdi/
+
+# 最小信頼度設定
+--min-confidence 80
 EOF
 
+# 2. pytest 設定: ワークスペース全体用
 cat > pytest.ini << 'EOF'
 [tool:pytest]
-# pytest 設定: テスト実行・カバレッジ設定
-testpaths = tests
+# pytest 設定: Hook システム統合強化 (IMP-002 対応)
+
+# テストディスカバリ
+testpaths = 
+    tests
+    projects/*/tests
 python_files = test_*.py *_test.py
 python_classes = Test*
 python_functions = test_*
 
-# カバレッジ設定
+# カバレッジ設定（Phase 6 継続改善対応）
 addopts = 
-    --cov=src
+    --strict-markers
+    --strict-config
     --cov-report=term-missing
-    --cov-report=html
+    --cov-report=html:htmlcov
     --cov-fail-under=60
     --verbose
+    -ra
 
 # テスト発見パターン
-minversion = 6.0
+minversion = 7.0
 markers =
     slow: marks tests as slow (deselect with '-m "not slow"')
-    integration: marks tests as integration tests
+    integration: marks tests as integration tests  
     unit: marks tests as unit tests
+    hook: marks hook system tests
+    
+# 並列実行設定（オプション）
+# addopts = -n auto  # pytest-xdist 使用時
+EOF
+
+# 3. プロジェクト別設定テンプレート
+mkdir -p .claude/templates
+
+cat > .claude/templates/project-vulture-config << 'EOF'
+# プロジェクト固有 vulture 設定テンプレート
+# 使用方法: cp .claude/templates/project-vulture-config projects/PROJECT_NAME/.vulture
+
+# プロジェクト固有除外
+# フレームワーク固有の未使用扱いパターン
+src/PROJECT_NAME/migrations/
+src/PROJECT_NAME/__init__.py
+
+# 設定/定数ファイル
+src/PROJECT_NAME/constants.py
+src/PROJECT_NAME/enums.py
+
+# 最小信頼度（プロジェクトに応じて調整）
+--min-confidence 85
+EOF
+
+cat > .claude/templates/project-pytest-config << 'EOF'
+# プロジェクト固有 pytest 設定テンプレート  
+# 使用方法: cp .claude/templates/project-pytest-config projects/PROJECT_NAME/pytest.ini
+
+[tool:pytest]
+# プロジェクト固有テスト設定
+
+testpaths = tests
+python_files = test_*.py *_test.py
+
+# プロジェクト固有カバレッジ
+addopts = 
+    --cov=src/PROJECT_NAME
+    --cov-report=term-missing
+    --cov-fail-under=80
+    --verbose
+
+markers =
+    api: API tests
+    db: database tests
+    slow: slow running tests
 EOF
 ```
 
+#### 動作確認とトラブルシューティング
+```bash
+# 1. ツール動作確認
+echo "def unused_function(): pass" > test_vulture.py
+vulture test_vulture.py  # 未使用関数検出テスト
+rm test_vulture.py
+
+# 2. pytest 動作確認
+mkdir -p test_temp/tests
+echo "def test_sample(): assert True" > test_temp/tests/test_sample.py
+cd test_temp && pytest --cov=. && cd ..
+rm -rf test_temp
+
+# 3. Hook 統合確認
+.claude/hooks/post-tool/unused-detector.sh
+.claude/hooks/stop/coverage-check.sh
+
+# 4. トラブルシューティング用ヘルパー
+cat > check_hook_deps.sh << 'EOF'
+#!/bin/bash
+# Hook 依存ツール確認スクリプト
+
+echo "=== Hook 依存ツール動作確認 ==="
+
+# vulture 確認
+if command -v vulture >/dev/null 2>&1; then
+    echo "✅ vulture: $(vulture --version)"
+else
+    echo "❌ vulture: 未インストール"
+    echo "   解決方法: pip install vulture"
+fi
+
+# pytest 確認
+if command -v pytest >/dev/null 2>&1; then
+    echo "✅ pytest: $(pytest --version)"
+else
+    echo "❌ pytest: 未インストール" 
+    echo "   解決方法: pip install pytest pytest-cov"
+fi
+
+# coverage 確認
+if command -v coverage >/dev/null 2>&1; then
+    echo "✅ coverage: $(coverage --version)"
+else
+    echo "❌ coverage: 未インストール"
+    echo "   解決方法: pip install pytest-cov"
+fi
+
+echo ""
+echo "=== Hook システム確認 ==="
+
+# Hook 実行権限確認
+for hook in .claude/hooks/*/*.sh; do
+    if [[ -x "$hook" ]]; then
+        echo "✅ $hook: 実行可能"
+    else
+        echo "❌ $hook: 実行権限なし"
+        echo "   解決方法: chmod +x $hook"
+    fi
+done
+
+echo ""
+echo "=== 設定ファイル確認 ==="
+
+# 設定ファイル存在確認
+for config in .vulture pytest.ini .claude/templates/project-*-config; do
+    if [[ -f "$config" ]]; then
+        echo "✅ $config: 存在"
+    else
+        echo "❌ $config: 不足"
+    fi
+done
+EOF
+
+chmod +x check_hook_deps.sh
+./check_hook_deps.sh
+```
+
 **完了目安**: 
-- ✅ vulture, pytest コマンド実行可能
-- ✅ .vulture.txt, pytest.ini 設定ファイル作成
+- ✅ vulture, pytest, coverage コマンド実行可能
+- ✅ .vulture, pytest.ini 設定ファイル作成
+- ✅ プロジェクト別設定テンプレート準備済み
 - ✅ Hook システムでツール不足警告が出ない
+- ✅ check_hook_deps.sh での確認がすべて "✅" 
+
+**Phase 6 継続改善対応**:
+- IMP-001: vulture 統合強化により未使用コード検出機能完全動作
+- IMP-002: pytest + pytest-cov 統合強化によりカバレッジチェック機能完全動作
+- Hook 依存ツール確認スクリプトによる自動診断機能追加
 
 ### 1-4. Hooks 雛形スクリプト作成
 **タスク**: 基本的な品質ガード Hook を 3 本作成

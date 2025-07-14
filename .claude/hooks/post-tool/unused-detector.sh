@@ -4,6 +4,12 @@
 # Purpose: Detect and report unused functions, variables, and imports after code changes
 # Exit Code 2: Block completion (force Claude to clean up)
 # Exit Code 0: Allow completion
+#
+# Phase 6 Continuous Improvement System Enhancements:
+# - IMP-001: Enhanced vulture integration with project-specific config support
+# - Improved fallback detection when vulture is not installed
+# - Better error messages and installation recommendations
+# Last updated: 2025-07-14 (Phase 6 Implementation)
 
 set -euo pipefail
 
@@ -98,40 +104,145 @@ detect_unused_python() {
     local file="$1"
     local issues=()
     
-    # vulture（未使用コード検出ツール）を使用
+    # Phase 6 継続改善: vulture統合強化 (IMP-001対応)
     if command -v vulture >/dev/null 2>&1; then
-        log_message "Running vulture analysis on $file"
+        log_message "Running vulture analysis on $file (Phase 6 強化版)"
+        
+        # プロジェクトルートの設定ファイル確認
+        local vulture_config=""
+        if [[ -f "$PROJECT_ROOT/.vulture" ]]; then
+            vulture_config="$PROJECT_ROOT/.vulture"
+            log_message "Using project-specific vulture config: $vulture_config"
+        elif [[ -f "$PROJECT_ROOT/.vulture.txt" ]]; then
+            vulture_config="$PROJECT_ROOT/.vulture.txt"
+            log_message "Using legacy vulture config: $vulture_config"
+        elif [[ -f "$WORKSPACE_ROOT/.vulture" ]]; then
+            vulture_config="$WORKSPACE_ROOT/.vulture"
+            log_message "Using workspace-level vulture config: $vulture_config"
+        fi
+        
+        # vulture実行（設定ファイル考慮）
         local vulture_output
-        vulture_output=$(vulture "$file" 2>/dev/null || true)
+        if [[ -n "$vulture_config" ]]; then
+            vulture_output=$(vulture "$file" --config "$vulture_config" 2>/dev/null || true)
+        else
+            # デフォルト設定で実行
+            vulture_output=$(vulture "$file" --min-confidence 80 2>/dev/null || true)
+        fi
         
         if [[ -n "$vulture_output" ]]; then
+            log_message "vulture detected unused code in $file"
             while IFS= read -r line; do
-                issues+=("$line")
+                # 出力をより解析しやすい形式に変換
+                if [[ "$line" =~ ^([^:]+):([0-9]+):[[:space:]]*(.+) ]]; then
+                    local file_path="${BASH_REMATCH[1]}"
+                    local line_num="${BASH_REMATCH[2]}"
+                    local issue_desc="${BASH_REMATCH[3]}"
+                    issues+=("Line $line_num: $issue_desc")
+                else
+                    issues+=("$line")
+                fi
             done <<< "$vulture_output"
+        else
+            log_message "vulture: No unused code detected in $file"
         fi
     else
-        # 簡易的な検出（vulture未インストール時）
-        log_message "vulture not available, using basic detection for $file"
+        # Phase 6 改善: vulture未インストール時の強化された代替検出
+        log_message "vulture not available, using enhanced fallback detection for $file"
+        log_message "RECOMMENDATION: Install vulture for better unused code detection (pip install vulture)"
         
-        # 基本的な未使用関数検出
+        # 1. 未使用関数検出（改良版）
         local unused_functions
-        unused_functions=$(grep -n "^def " "$file" | while read -r line; do
-            local func_name
-            func_name=$(echo "$line" | sed 's/.*def \([^(]*\).*/\1/')
-            if [[ -n "$func_name" && "$func_name" != "main" && "$func_name" != "__init__" ]]; then
-                # ファイル内で関数が使用されているかチェック
-                if ! grep -q "$func_name" "$file" | grep -v "^def $func_name"; then
-                    echo "Unused function: $func_name (line $(echo "$line" | cut -d: -f1))"
-                fi
-            fi
-        done)
-        
+        unused_functions=$(detect_unused_python_functions "$file")
         if [[ -n "$unused_functions" ]]; then
             issues+=("$unused_functions")
+        fi
+        
+        # 2. 未使用インポート検出（基本版）
+        local unused_imports
+        unused_imports=$(detect_unused_python_imports "$file")
+        if [[ -n "$unused_imports" ]]; then
+            issues+=("$unused_imports")
+        fi
+        
+        # 3. 未使用変数検出（基本版）
+        local unused_vars
+        unused_vars=$(detect_unused_python_variables "$file")
+        if [[ -n "$unused_vars" ]]; then
+            issues+=("$unused_vars")
         fi
     fi
     
     printf '%s\n' "${issues[@]}"
+}
+
+# Phase 6 追加: vulture未インストール時の強化された代替検出関数群
+detect_unused_python_functions() {
+    local file="$1"
+    local temp_result=""
+    
+    # 関数定義の抽出
+    grep -n "^[[:space:]]*def " "$file" | while IFS=: read -r line_num line_content; do
+        local func_name
+        func_name=$(echo "$line_content" | sed -E 's/^[[:space:]]*def[[:space:]]+([^(]+).*/\1/')
+        
+        # 特殊関数・メソッドの除外
+        if [[ "$func_name" =~ ^(main|__init__|__str__|__repr__|__eq__|test_.*|setUp|tearDown)$ ]]; then
+            continue
+        fi
+        
+        # ファイル内での使用確認（関数定義行以外）
+        local usage_count
+        usage_count=$(grep -n "$func_name" "$file" | grep -v "^$line_num:" | wc -l)
+        
+        if [[ $usage_count -eq 0 ]]; then
+            echo "Unused function: $func_name (line $line_num)"
+        fi
+    done
+}
+
+detect_unused_python_imports() {
+    local file="$1"
+    
+    # import文の抽出
+    grep -n "^[[:space:]]*import\|^[[:space:]]*from.*import" "$file" | while IFS=: read -r line_num line_content; do
+        # 単純なimport文の処理
+        if [[ "$line_content" =~ ^[[:space:]]*import[[:space:]]+([^#]+) ]]; then
+            local imports="${BASH_REMATCH[1]}"
+            # カンマ区切りの処理
+            echo "$imports" | tr ',' '\n' | while read -r module; do
+                module=$(echo "$module" | xargs)  # トリム
+                if [[ -n "$module" ]]; then
+                    # モジュール使用確認（import行以外）
+                    local usage_count
+                    usage_count=$(grep -n "$module" "$file" | grep -v "^$line_num:" | wc -l)
+                    if [[ $usage_count -eq 0 ]]; then
+                        echo "Potentially unused import: $module (line $line_num)"
+                    fi
+                fi
+            done
+        fi
+    done
+}
+
+detect_unused_python_variables() {
+    local file="$1"
+    
+    # グローバル変数の検出（簡易版）
+    grep -n "^[[:space:]]*[A-Z_][A-Z0-9_]*[[:space:]]*=" "$file" | while IFS=: read -r line_num line_content; do
+        local var_name
+        var_name=$(echo "$line_content" | sed -E 's/^[[:space:]]*([A-Z_][A-Z0-9_]*)[[:space:]]*=.*/\1/')
+        
+        if [[ -n "$var_name" ]]; then
+            # 変数使用確認（定義行以外）
+            local usage_count
+            usage_count=$(grep -n "$var_name" "$file" | grep -v "^$line_num:" | wc -l)
+            
+            if [[ $usage_count -eq 0 ]]; then
+                echo "Potentially unused variable: $var_name (line $line_num)"
+            fi
+        fi
+    done
 }
 
 detect_unused_javascript() {

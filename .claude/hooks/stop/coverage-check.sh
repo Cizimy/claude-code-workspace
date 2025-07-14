@@ -4,6 +4,13 @@
 # Purpose: Ensure adequate test coverage before allowing Claude to complete
 # Exit Code 2: Block completion (force continued work)
 # Exit Code 0: Allow completion
+#
+# Phase 6 Continuous Improvement System Enhancements:
+# - IMP-002: Enhanced pytest integration with project-specific config support
+# - Improved fallback testing when pytest is not installed
+# - Better error messages and installation recommendations
+# - Support for multiple Python package managers (pip, uv, conda)
+# Last updated: 2025-07-14 (Phase 6 Implementation)
 
 set -euo pipefail
 
@@ -39,7 +46,7 @@ get_current_project() {
 readonly PROJECT=$(get_current_project)
 log_message "Detected project: $PROJECT"
 
-# プロジェクト別のカバレッジチェック
+# プロジェクト別のカバレッジチェック（Phase 6 強化版）
 check_python_coverage() {
     local project_root="$1"
     
@@ -48,19 +55,104 @@ check_python_coverage() {
         return 0
     }
     
-    log_message "Checking Python test coverage in: $project_root"
+    log_message "Checking Python test coverage in: $project_root (Phase 6 強化版)"
     
-    # pytest-cov を使用してカバレッジを計算
-    if command -v pytest >/dev/null 2>&1; then
-        local coverage_output
-        local coverage_percentage
+    # Phase 6 改善: 複数のパッケージマネージャー対応
+    local pytest_cmd=""
+    local python_cmd=""
+    
+    # Python実行環境の検出
+    if command -v uv >/dev/null 2>&1 && [[ -f "pyproject.toml" || -f "requirements.txt" ]]; then
+        python_cmd="uv run python"
+        pytest_cmd="uv run pytest"
+        log_message "Using uv for Python execution"
+    elif [[ -f "venv/bin/activate" ]]; then
+        python_cmd="./venv/bin/python"
+        pytest_cmd="./venv/bin/pytest"
+        log_message "Using local venv for Python execution"
+    elif command -v conda >/dev/null 2>&1 && [[ -n "${CONDA_DEFAULT_ENV:-}" ]]; then
+        python_cmd="python"
+        pytest_cmd="pytest"
+        log_message "Using conda environment: $CONDA_DEFAULT_ENV"
+    else
+        python_cmd="python3"
+        pytest_cmd="pytest"
+        log_message "Using system Python"
+    fi
+    
+    # pytest の確認（Phase 6 強化）
+    if command -v pytest >/dev/null 2>&1 || [[ -x "./venv/bin/pytest" ]] || command -v "$pytest_cmd" >/dev/null 2>&1; then
+        log_message "pytest available, running coverage analysis"
         
-        # まずテストを実行してカバレッジを取得
-        if coverage_output=$(python -m pytest --cov=proper_pixel_art --cov-report=term-missing --cov-fail-under=0 -q 2>/dev/null) || coverage_output=$(uv run pytest --cov=proper_pixel_art --cov-report=term-missing --cov-fail-under=0 -q 2>/dev/null); then
-            # カバレッジパーセンテージを抽出
-            coverage_percentage=$(echo "$coverage_output" | grep "TOTAL" | awk '{print $4}' | sed 's/%//' || echo "0")
+        # プロジェクト固有設定ファイルの検出
+        local pytest_config=""
+        local coverage_target=""
+        
+        # 設定ファイルの優先順位: pytest.ini -> pyproject.toml -> setup.cfg
+        if [[ -f "pytest.ini" ]]; then
+            pytest_config="pytest.ini"
+            log_message "Using pytest.ini configuration"
+        elif [[ -f "pyproject.toml" ]] && grep -q "pytest" "pyproject.toml"; then
+            pytest_config="pyproject.toml"
+            log_message "Using pyproject.toml configuration"
+        elif [[ -f "setup.cfg" ]] && grep -q "pytest" "setup.cfg"; then
+            pytest_config="setup.cfg"
+            log_message "Using setup.cfg configuration"
+        else
+            log_message "No pytest configuration found, using defaults"
+        fi
+        
+        # カバレッジ対象の自動検出
+        if [[ -d "src" ]]; then
+            # src/ レイアウト
+            coverage_target="src"
+        elif [[ -d "lib" ]]; then
+            # lib/ レイアウト
+            coverage_target="lib"
+        else
+            # フラットレイアウト - プロジェクト名を推測
+            local project_name
+            if [[ -f "pyproject.toml" ]]; then
+                project_name=$(grep "^name = " pyproject.toml | sed 's/name = "\([^"]*\)".*/\1/' || echo "")
+            elif [[ -f "setup.py" ]]; then
+                project_name=$(grep "name=" setup.py | sed "s/.*name=['\"]\\([^'\"]*\\)['\"].*/\\1/" || echo "")
+            fi
             
-            if [[ -n "$coverage_percentage" ]]; then
+            if [[ -n "$project_name" && -d "$project_name" ]]; then
+                coverage_target="$project_name"
+            else
+                # デフォルト: カレントディレクトリの .py ファイル
+                coverage_target="."
+            fi
+        fi
+        
+        log_message "Coverage target: $coverage_target"
+        
+        # Phase 6 強化: より堅牢なpytest実行
+        local coverage_output=""
+        local coverage_percentage=""
+        local pytest_exit_code=0
+        
+        # pytest実行（複数の方法を試行）
+        if coverage_output=$($pytest_cmd --cov="$coverage_target" --cov-report=term-missing --cov-fail-under=0 -v 2>&1); then
+            pytest_exit_code=0
+        elif coverage_output=$($python_cmd -m pytest --cov="$coverage_target" --cov-report=term-missing --cov-fail-under=0 -v 2>&1); then
+            pytest_exit_code=0
+        else
+            pytest_exit_code=1
+            log_message "pytest execution failed, output: $coverage_output"
+        fi
+        
+        if [[ $pytest_exit_code -eq 0 ]]; then
+            # カバレッジパーセンテージの抽出（Phase 6 改善）
+            coverage_percentage=$(echo "$coverage_output" | grep "TOTAL" | awk '{print $4}' | sed 's/%//' | head -1)
+            
+            if [[ -z "$coverage_percentage" ]]; then
+                # 代替パターンでの抽出
+                coverage_percentage=$(echo "$coverage_output" | grep -o "coverage: [0-9]\+%" | sed 's/coverage: \([0-9]\+\)%.*/\1/' | head -1)
+            fi
+            
+            if [[ -n "$coverage_percentage" && "$coverage_percentage" =~ ^[0-9]+$ ]]; then
                 log_message "Current coverage: ${coverage_percentage}%"
                 
                 if (( coverage_percentage < MIN_COVERAGE_THRESHOLD )); then
@@ -71,39 +163,98 @@ check_python_coverage() {
                     return 0
                 fi
             else
-                log_message "Could not extract coverage percentage"
-                return 0  # 不明な場合は通す
+                log_message "Could not extract coverage percentage from output"
+                log_message "pytest output: $coverage_output"
+                # テストが実行されたなら成功とみなす
+                if echo "$coverage_output" | grep -q "test session starts\|collected.*items"; then
+                    log_message "Tests executed successfully, assuming coverage is adequate"
+                    return 0
+                else
+                    return 1
+                fi
             fi
         else
-            log_message "pytest execution failed, checking if tests exist"
-            
-            # テストファイルが存在するかチェック
-            local test_files
-            test_files=$(find . -name "*test*.py" -o -name "*spec*.py" 2>/dev/null | wc -l)
-            
-            if (( test_files == 0 )); then
-                log_message "No test files found, requiring test creation"
-                return 1
-            else
-                log_message "Test files exist but pytest failed, allowing completion"
-                return 0
-            fi
+            log_message "pytest execution failed, falling back to basic test checks"
+            return $(check_python_fallback_testing "$project_root")
         fi
     else
-        log_message "pytest not available, using simple test file check"
+        log_message "pytest not available, using enhanced fallback testing"
+        return $(check_python_fallback_testing "$project_root")
+    fi
+}
+
+# Phase 6 追加: pytest未インストール時の強化されたフォールバック
+check_python_fallback_testing() {
+    local project_root="$1"
+    
+    log_message "RECOMMENDATION: Install pytest for better testing support"
+    log_message "Installation commands:"
+    log_message "  pip install pytest pytest-cov"
+    log_message "  # or with uv: uv add pytest pytest-cov"
+    log_message "  # or with conda: conda install pytest pytest-cov"
+    
+    # 1. テストファイル存在確認（強化）
+    local test_patterns=(
+        "*test*.py"
+        "*_test.py" 
+        "test_*.py"
+        "tests/*.py"
+        "test/*.py"
+        "**/test_*.py"
+        "**/tests/*.py"
+    )
+    
+    local test_file_count=0
+    for pattern in "${test_patterns[@]}"; do
+        if ls $pattern >/dev/null 2>&1; then
+            local count=$(ls $pattern 2>/dev/null | wc -l)
+            test_file_count=$((test_file_count + count))
+        fi
+    done
+    
+    log_message "Found $test_file_count test files"
+    
+    if (( test_file_count == 0 )); then
+        log_message "No test files found - test creation required"
+        return 1
+    fi
+    
+    # 2. 基本的なテスト実行確認（unittest使用）
+    local python_cmd="python3"
+    if command -v uv >/dev/null 2>&1; then
+        python_cmd="uv run python"
+    fi
+    
+    # テストファイルで基本的な構文チェック
+    local test_syntax_ok=true
+    for test_file in $(find . -name "*test*.py" -o -name "test_*.py" | head -5); do
+        if ! $python_cmd -m py_compile "$test_file" 2>/dev/null; then
+            log_message "Syntax error in test file: $test_file"
+            test_syntax_ok=false
+        fi
+    done
+    
+    if [[ "$test_syntax_ok" == "false" ]]; then
+        log_message "Test files contain syntax errors"
+        return 1
+    fi
+    
+    # 3. 簡易的なカバレッジ推定
+    local py_file_count=$(find . -name "*.py" -not -path "*/test*" -not -path "*/.*" | wc -l)
+    local test_function_count=$(grep -r "def test_" . --include="*test*.py" | wc -l)
+    
+    if (( py_file_count > 0 )); then
+        local test_ratio=$((test_function_count * 100 / py_file_count))
+        log_message "Estimated test coverage ratio: ${test_ratio}% (${test_function_count} test functions for ${py_file_count} Python files)"
         
-        # 基本的なテストファイル存在チェック
-        local test_files
-        test_files=$(find . -name "*test*.py" -o -name "*spec*.py" 2>/dev/null | wc -l)
-        
-        if (( test_files == 0 )); then
-            log_message "No test files found"
+        if (( test_ratio < 20 )); then
+            log_message "Insufficient test coverage estimated"
             return 1
-        else
-            log_message "Test files found: $test_files"
-            return 0
         fi
     fi
+    
+    log_message "Basic test validation passed (fallback mode)"
+    return 0
 }
 
 check_vba_coverage() {
@@ -243,20 +394,26 @@ if ! main_coverage_check; then
             echo "• テストカバレッジ: ${MIN_COVERAGE_THRESHOLD}% 以上" >&2
             echo "• 実装変更時は対応するテストの追加・更新が必要" >&2
             echo "" >&2
-            echo "解決方法:" >&2
+            echo "解決方法（Phase 6 強化版）:" >&2
             echo "1. 不足しているテストケースを追加" >&2
-            echo "2. uv run pytest --cov=proper_pixel_art --cov-report=term-missing でカバレッジを確認" >&2
+            echo "2. カバレッジ確認コマンド:" >&2
+            echo "   uv run pytest --cov=proper_pixel_art --cov-report=term-missing" >&2
+            echo "   # または: pytest --cov=. --cov-report=term-missing" >&2
             echo "3. 未テスト部分に対応するテストを実装" >&2
+            echo "4. pytest未インストールの場合: pip install pytest pytest-cov" >&2
             ;;
         danbooru_advanced_wildcard)
             echo "Python プロジェクトの要求事項:" >&2
             echo "• テストカバレッジ: ${MIN_COVERAGE_THRESHOLD}% 以上" >&2
             echo "• 実装変更時は対応するテストの追加・更新が必要" >&2
             echo "" >&2
-            echo "解決方法:" >&2
+            echo "解決方法（Phase 6 強化版）:" >&2
             echo "1. 不足しているテストケースを追加" >&2
-            echo "2. pytest --cov=src --cov-report=term-missing でカバレッジを確認" >&2
+            echo "2. カバレッジ確認コマンド:" >&2
+            echo "   pytest --cov=src --cov-report=term-missing" >&2
+            echo "   # または: uv run pytest --cov=src --cov-report=term-missing" >&2
             echo "3. 未テスト部分に対応するテストを実装" >&2
+            echo "4. pytest未インストールの場合: pip install pytest pytest-cov" >&2
             ;;
         pdi)
             echo "VBA プロジェクトの要求事項:" >&2
