@@ -12,11 +12,14 @@ Claude Code Hooksは、AIエージェントの動作を監視・制御し、プ�
 hooks/
 ├── README.md                    # 本ファイル
 ├── pre-tool/                    # ツール実行前のフック
-│   └── tdd-guard.sh            # TDD違反検出・ブロック
+│   ├── tdd-guard.sh            # TDD違反検出・ブロック
+│   └── constitution-guard.sh   # AI完璧主義防止・憲法遵守
 ├── post-tool/                   # ツール実行後のフック
 │   └── unused-detector.sh      # 未使用コード検出
-└── stop/                        # 対話終了前のフック
-    └── coverage-check.sh        # カバレッジ・品質チェック
+├── stop/                        # 対話終了前のフック
+│   └── coverage-check.sh        # カバレッジ・品質チェック
+└── notification/                # 通知・フィードバック
+    └── sound-notifier.sh        # 音声通知システム
 ```
 
 ## 🔧 フックの詳細
@@ -25,7 +28,17 @@ hooks/
 **ファイル**: `pre-tool/tdd-guard.sh`
 **目的**: テスト駆動開発の順序を強制
 
+### PreToolUse: Constitution Guard
+**ファイル**: `pre-tool/constitution-guard.sh`
+**目的**: AI完璧主義防止・憲法遵守の監視
+
 #### 動作
+- プロジェクト憲法（CLAUDE.md）の遵守状況を監視
+- 95%以上の完璧主義を検出・防止
+- 推測実装・過度な汎用化の抑制
+- 大量ドキュメント作成の制限
+
+#### TDD Guard 動作
 - 実装ファイルの編集前に、対応するテストファイルの変更を確認
 - テスト変更がない場合、実装変更をブロック（exit code 2）
 - VBAファイルや設定ファイルは除外
@@ -98,6 +111,15 @@ workspace:
   }
 }
 ```
+
+### Notification: Sound Notifier
+**ファイル**: `notification/sound-notifier.sh`
+**目的**: Hook実行時の音声通知
+
+#### 動作
+- Hook実行時に音声フィードバックを提供
+- 成功・警告・エラー別の音声パターン
+- 開発者への即座な状況通知
 
 ### 環境変数
 フックスクリプトは以下のClaude Code環境変数を使用：
@@ -220,4 +242,4 @@ sed -i 's/MIN_COVERAGE_THRESHOLD=80/MIN_COVERAGE_THRESHOLD=70/' \
 
 これらのフックにより、Claude Codeを使った開発でも確実にTDD・YAGNI原則を維持し、高品質なコードベースを保つことができます。
 
-*最終更新: 2025-07-10*
+*最終更新: 2025-07-14*

@@ -92,25 +92,35 @@ sed -i 's/\[MIN_COVERAGE\]/70/g' CLAUDE.md  # VBAは要求緩和
 - [ ] プレースホルダーの一貫性確認
 - [ ] 実際のプロジェクトでの動作確認
 
-## 🎨 追加予定テンプレート
+## 🎨 実装済みテンプレート
 
 ### 📄 issue_templates.md
-**予定**: GitHub Issue テンプレート
+**ファイル**: `issue_templates.md`
+**用途**: GitHub Issue テンプレート集
 - 新機能要求テンプレート
 - バグ報告テンプレート  
 - TDD要求仕様テンプレート
 
-### 🔄 github_actions.yml
-**予定**: GitHub Actions ワークフロー
+### 🔄 github_actions_claude.yml
+**ファイル**: `github_actions_claude.yml`
+**用途**: GitHub Actions ワークフロー
 - Claude Code 連携設定
 - 自動テスト・デプロイ
 - 品質ゲート統合
 
 ### 📝 document_structure.md
-**予定**: ドキュメント構造テンプレート
+**ファイル**: `document_structure.md`
+**用途**: ドキュメント構造テンプレート
 - プロジェクトREADME
 - API仕様書フォーマット
 - アーキテクチャ文書
+
+### 📖 github_actions_README.md
+**ファイル**: `github_actions_README.md`
+**用途**: GitHub Actions設定ガイド
+- ワークフロー設定手順
+- Claude Code統合方法
+- トラブルシューティング
 
 ## 🔗 関連リンク
 
@@ -121,4 +131,18 @@ sed -i 's/\[MIN_COVERAGE\]/70/g' CLAUDE.md  # VBAは要求緩和
 
 ---
 
-*最終更新: 2025-07-10*
+## 📋 実装状況
+
+### ✅ 完了済み
+- **CLAUDE.md.template**: プロジェクト憲法テンプレート（完成）
+- **issue_templates.md**: GitHub Issue テンプレート（完成）
+- **github_actions_claude.yml**: GitHub Actions ワークフロー（完成）
+- **document_structure.md**: ドキュメント構造テンプレート（完成）
+- **github_actions_README.md**: GitHub Actions設定ガイド（完成）
+
+### 🔄 継続改善
+- テンプレート使用状況のフィードバック収集
+- 新しいプロジェクトタイプへの対応
+- 言語固有のカスタマイズ拡張
+
+*最終更新: 2025-07-14*

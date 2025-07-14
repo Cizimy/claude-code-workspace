@@ -6,18 +6,19 @@
 
 ### コアシステム
 - **[Claude フレームワーク](claude_framework.md)** - Claude Code の動作原理とライフサイクル
-- **[アーキテクチャ](architecture.md)** - システム全体の設計思想と構成
-- **[Hook システム](hook_system.md)** - Hook の技術仕様と実装詳細
+- **[統合品質ゲートシステム](integrated_quality_gate_system.md)** - 品質管理の統合システム
+- **[憲法ガードシステム](constitution-guard-system.md)** - AI完璧主義防止システム
 
 ### 設計指針
-- **[TDD 設計原則](tdd_principles.md)** - テスト駆動開発の理論と実装
-- **[YAGNI 実践](yagni_implementation.md)** - 複雑性抑制の具体的手法
-- **[品質保証](quality_assurance.md)** - 自動品質管理の設計
-
-### プロジェクト管理
-- **[リポジトリ戦略](repository_strategy.md)** - Git worktree による疑似モノレポ
+- **[文書複雑性制御システム](document-complexity-control-system.md)** - 複雑性抑制の具体的手法
 - **[統合計画](integration_plan.md)** - 文書統合・アーカイブ管理
-- **[拡張ガイド](extension_guide.md)** - システム拡張・カスタマイズ方法
+- **[リポジトリ戦略](repository_strategy.md)** - Git worktree による疑似モノレポ
+
+### 実装状況
+- ✅ **完了済み**: claude_framework.md, integrated_quality_gate_system.md, constitution-guard-system.md
+- ✅ **完了済み**: document-complexity-control-system.md, integration_plan.md, repository_strategy.md  
+- ❌ **未実装**: architecture.md, hook_system.md, tdd_principles.md, yagni_implementation.md
+- ❌ **未実装**: quality_assurance.md, extension_guide.md
 
 ## 🏗️ システムアーキテクチャ概要
 
@@ -143,4 +144,25 @@ Context → Tools → Permission → Execution → Feedback
 
 ---
 
-**活用方法**: 各技術詳細は個別のリファレンス文書を参照してください。システム拡張・カスタマイズ時は設計原則を遵守し、既存の品質基準を維持してください。
+## 📋 実装ロードマップ
+
+### Phase 1: 基盤強化（優先度: 高）
+1. **architecture.md** - システム全体の設計思想と構成
+2. **hook_system.md** - Hook の技術仕様と実装詳細
+3. **quality_assurance.md** - 自動品質管理の設計
+
+### Phase 2: 開発支援（優先度: 中）
+1. **tdd_principles.md** - テスト駆動開発の理論と実装
+2. **yagni_implementation.md** - YAGNI原則の実践方法
+3. **extension_guide.md** - システム拡張・カスタマイズ方法
+
+### Phase 3: 継続改善（優先度: 低）
+- 既存文書の更新・拡張
+- 新しい技術要素の追加
+- 外部ツール統合ガイド
+
+---
+
+**活用方法**: 実装済みの技術詳細は個別のリファレンス文書を参照してください。システム拡張・カスタマイズ時は設計原則を遵守し、既存の品質基準を維持してください。
+
+*最終更新: 2025-07-14*

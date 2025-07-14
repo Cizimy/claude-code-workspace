@@ -28,6 +28,11 @@
 - **[継続改善システム](../03_operations/improvement_recommendations.md)** - 検証報告からの改善事項管理
 - 完了目安: Hook依存ツール完全動作、改善追跡システム運用開始
 
+### 実装状況
+- ✅ **完了済み**: environment_setup.md, governance_setup.md, project_setup.md
+- ✅ **完了済み**: template_setup.md, pilot_testing.md
+- ✅ **完了済み**: improvement_recommendations.md (Phase 6)
+
 ## ⚡ 推奨実行順序
 
 **新規環境の場合:**
@@ -80,3 +85,5 @@
 ---
 
 **次のステップ**: [環境セットアップ](environment_setup.md) から開始してください。
+
+*最終更新: 2025-07-14*

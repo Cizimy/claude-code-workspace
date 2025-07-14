@@ -1,3 +1,13 @@
+---
+title: "JSON Schemas for Document Front-Matter"
+status: "active"
+category: "reference"
+created: "2025-07-10"
+updated: "2025-07-14"
+tags: ["schemas", "front-matter", "validation", "adr-005"]
+priority: "medium"
+---
+
 # JSON Schemas for Document Front-Matter
 
 > **Purpose**: Schema definitions for Front-Matter validation in Claude Code workspace documents (ADR-005)
@@ -69,17 +79,18 @@ troubleshooting_guide: true
 
 ### Manual Validation
 ```bash
-# Validate single document
-python scripts/validate_frontmatter.py document.md
+# 現在の検証方法（python scripts/validate_frontmatter.py は未実装）
+# 手動でスキーマ構造を確認:
+python -c "import json; print(json.dumps(json.load(open('schemas/md-meta.schema.json')), indent=2))"
 
-# Validate all documents
-python scripts/validate_frontmatter.py
+# 全ドキュメントの Front-Matter 解析
+python scripts/doc_inventory.py --format=json
 ```
 
 ### CI Integration
 ```bash
-# GitHub Actions validation (automatic)
-# See .github/workflows/docs-ci.yml
+# GitHub Actions validation (計画中 - 未実装)
+# 将来実装: .github/workflows/docs-ci.yml
 ```
 
 ### Schema Selection Logic
@@ -126,24 +137,31 @@ The validation system automatically selects the appropriate schema based on the 
 # Test schema itself for validity
 python -c "import json, jsonschema; jsonschema.Draft7Validator.check_schema(json.load(open('schemas/md-meta.schema.json')))"
 
-# Test against example documents
-python scripts/validate_frontmatter.py --test-examples
+# Test against example documents (未実装)
+# 将来実装: python scripts/validate_frontmatter.py --test-examples
 ```
 
 ## 📈 Integration with Document Complexity Control
 
 These schemas are integral to the Document Complexity Control System (ADR-005):
 
-1. **CI Validation**: Automatic Front-Matter validation in GitHub Actions
-2. **SQLite Integration**: Structured metadata extraction for analytics
-3. **Complexity Monitoring**: Consistent categorization for complexity metrics
-4. **Search & Discovery**: Standardized tags and categories for document discovery
+1. **CI Validation**: Automatic Front-Matter validation in GitHub Actions (計画中)
+2. **SQLite Integration**: Structured metadata extraction for analytics (計画中)  
+3. **Complexity Monitoring**: Consistent categorization for complexity metrics (部分実装)
+4. **Search & Discovery**: Standardized tags and categories for document discovery (計画中)
+
+### 現在の実装状況
+- ✅ **スキーマ定義**: 完了 (md-meta.schema.json 他)
+- ✅ **文書複雑性分析**: 完了 (scripts/doc_inventory.py)
+- ❌ **Front-Matter検証**: 未実装 (scripts/validate_frontmatter.py)
+- ❌ **CI統合**: 未実装 (.github/workflows/docs-ci.yml)
+- ❌ **SQLite統合**: 未実装
 
 ## 🔗 Related Documentation
 
 - **[ADR-005](../governance/adr/005-document-complexity-control-system.md)**: Document Complexity Control System decision
-- **[Document Complexity Monitoring](../.claude/docs/03_operations/document_complexity_monitoring.md)**: Daily operations guide
-- **[Technical Specification](../.claude/docs/04_reference/document-complexity-control-system.md)**: Implementation details
+- **[Document Inventory Script](../scripts/doc_inventory.py)**: 文書複雑性分析ツール
+- **[Governance README](../governance/README.md)**: ガバナンス手順・ADR管理
 
 ---
 

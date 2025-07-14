@@ -8,15 +8,23 @@
 - **[TDD ワークフロー](tdd_workflow.md)** - テスト駆動開発の実践方法
 - **[品質管理](quality_control.md)** - Hook による自動品質管理
 - **[実装検証SOP](implementation_verification_sop.md)** - 実装完了の体系的検証手順
-- **[Issue 駆動開発](issue_driven_development.md)** - GitHub Issue を中心とした開発フロー
+- **[Hook統合チェックリスト](hook_integration_checklist.md)** - Hook システム統合手順
 
 ### 継続改善
 - **[改善推奨事項追跡](improvement_recommendations.md)** - 検証報告から特定された改善事項の管理
+- **[文書複雑性監視](document_complexity_monitoring.md)** - 文書品質の継続的監視
 
 ### 高度な運用
-- **[並行開発管理](parallel_development.md)** - 複数タスクの同時進行
-- **[レビューワークフロー](review_workflow.md)** - 人間-AI 協働レビュー
-- **[トラブルシューティング](troubleshooting.md)** - よくある問題と解決策
+- **[AI完璧主義監視](ai_perfectionism_monitoring.md)** - AI完璧主義防止システム運用
+- **[CLAUDE.md最適化SOP](claude_md_optimization_sop.md)** - プロジェクト憲法の最適化
+
+### 実装状況
+- ✅ **完了済み**: tdd_workflow.md, quality_control.md, implementation_verification_sop.md
+- ✅ **完了済み**: improvement_recommendations.md, document_complexity_monitoring.md
+- ✅ **完了済み**: hook_integration_checklist.md, ai_perfectionism_monitoring.md
+- ✅ **完了済み**: claude_md_optimization_sop.md  
+- ❌ **未実装**: issue_driven_development.md, parallel_development.md, review_workflow.md
+- ❌ **未実装**: troubleshooting.md
 
 ## 🎯 基本原則
 
@@ -89,6 +97,20 @@ cat .claude/logs/hook-execution.log
 - **ドメイン分離** - プロジェクト・モジュール単位での担当分け  
 - **レビュー分担** - AI 出力の最終確認は人間が担当
 
+## 📋 実装優先度
+
+### Phase 1: 基本運用完備（優先度: 高）
+1. **issue_driven_development.md** - GitHub Issue を中心とした開発フロー
+2. **troubleshooting.md** - よくある問題と解決策
+
+### Phase 2: 高度な運用（優先度: 中）  
+1. **parallel_development.md** - 複数タスクの同時進行
+2. **review_workflow.md** - 人間-AI 協働レビュー
+
+### Phase 3: 継続改善（優先度: 低）
+- 既存運用ガイドの拡張・改善
+- 新しい運用パターンの追加
+
 ## 🔗 関連ドキュメント
 
 - **[クイックスタート](../01_quickstart/)** - 環境セットアップ手順
@@ -97,4 +119,6 @@ cat .claude/logs/hook-execution.log
 
 ---
 
-**次のステップ**: 各種運用ガイドを参照して、具体的な作業フローを確立してください。
+**次のステップ**: 実装済みの運用ガイドを参照して、具体的な作業フローを確立してください。
+
+*最終更新: 2025-07-14*
