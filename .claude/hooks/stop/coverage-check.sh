@@ -25,6 +25,18 @@ log_message() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$SCRIPT_NAME] $1" | tee -a "$LOG_FILE"
 }
 
+# 音声通知機能（セッション停止ブロック時）
+play_session_blocked_sound() {
+    # WSL2環境での音声通知（低音で重要性を示す）
+    if command -v powershell.exe >/dev/null 2>&1; then
+        powershell.exe -Command "[console]::beep(400,400); Start-Sleep -Milliseconds 200; [console]::beep(400,400); Start-Sleep -Milliseconds 200; [console]::beep(400,400)" 2>/dev/null
+    elif command -v cmd.exe >/dev/null 2>&1; then
+        cmd.exe /c "echo ^G" 2>/dev/null
+    else
+        printf '\a\a\a'  # トリプルベル音で重要性を示す
+    fi
+}
+
 log_message "Coverage check hook activated"
 
 # 現在のワーキングディレクトリからプロジェクトを特定
@@ -434,6 +446,9 @@ if ! main_coverage_check; then
             echo "2. .claude/settings.json の設定確認" >&2
             ;;
     esac
+    
+    # セッション継続が必要な重要な意思決定タイミングで音声通知
+    play_session_blocked_sound
     
     exit 2
 fi

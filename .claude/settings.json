@@ -54,6 +54,10 @@
           {
             "type": "command",
             "command": ".claude/hooks/pre-tool/tdd-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-tool/constitution-guard.sh"
           }
         ]
       }
@@ -65,15 +69,6 @@
           {
             "type": "command",
             "command": ".claude/hooks/post-tool/unused-detector.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/notification/sound-notifier.sh"
           }
         ]
       }
