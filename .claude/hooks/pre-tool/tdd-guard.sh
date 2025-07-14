@@ -118,11 +118,16 @@ log_message "Checking TDD compliance for: $TARGET_FILE"
 # テスト対象外ファイルの除外
 is_test_exempt() {
     local file="$1"
+    local filename=$(basename "$file")
     
-    # テストファイル自体は除外
-    [[ "$file" =~ test.*\.(py|js|ts|java|go|rs)$ ]] && return 0
-    [[ "$file" =~ .*test\.(py|js|ts|java|go|rs)$ ]] && return 0
-    [[ "$file" =~ spec.*\.(py|js|ts|java|go|rs)$ ]] && return 0
+    # テストファイル自体は除外 (ファイル名ベースでチェック)
+    [[ "$filename" =~ ^test.*\.(py|js|ts|java|go|rs)$ ]] && return 0
+    [[ "$filename" =~ .*_test\.(py|js|ts|java|go|rs)$ ]] && return 0
+    [[ "$filename" =~ ^spec.*\.(py|js|ts|java|go|rs)$ ]] && return 0
+    
+    # テストディレクトリ内のファイルは除外
+    [[ "$file" =~ /tests?/ ]] && return 0
+    [[ "$file" =~ /spec/ ]] && return 0
     
     # 設定ファイル・ドキュメントは除外
     [[ "$file" =~ \.(md|txt|yml|yaml|json|xml|toml|ini|conf)$ ]] && return 0
@@ -154,17 +159,24 @@ check_test_file_updates() {
         # VBAプロジェクトはTDDチェックを緩和
         log_message "VBA project detected, relaxing TDD requirements"
         return 0
+    elif [[ "$impl_file" =~ pilot-test ]]; then
+        project_root="$WORKSPACE_ROOT/projects/pilot-test"
+        log_message "Pilot test project detected, applying strict TDD"
     else
         log_message "Unknown project, applying strict TDD"
         project_root="$WORKSPACE_ROOT"
     fi
     
     # 最近のテストファイル変更を確認（過去30分以内）
-    local recent_test_changes
-    recent_test_changes=$(find "$project_root" -name "*test*.py" -o -name "*test*.js" -o -name "*test*.ts" -o -name "*test*.java" -o -name "*test*.go" -o -name "*test*.rs" -o -name "*spec*.py" -o -name "*spec*.js" -o -name "*spec*.ts" | xargs ls -lt 2>/dev/null | head -5)
+    local recent_test_count
+    recent_test_count=$(find "$project_root" -path "*/venv" -prune -o -path "*/node_modules" -prune -o -path "*/.git" -prune -o \( -name "*test*.py" -o -name "*test*.js" -o -name "*test*.ts" -o -name "*test*.java" -o -name "*test*.go" -o -name "*test*.rs" -o -name "*spec*.py" -o -name "*spec*.js" -o -name "*spec*.ts" \) -mmin -30 -print 2>/dev/null | wc -l)
     
-    if [[ -n "$recent_test_changes" ]]; then
-        log_message "Recent test file changes detected, allowing implementation change"
+    if [[ "$recent_test_count" -gt 0 ]]; then
+        log_message "Recent test file changes detected ($recent_test_count files within 30 minutes), allowing implementation change"
+        # Log the actual files for debugging
+        find "$project_root" -path "*/venv" -prune -o -path "*/node_modules" -prune -o -path "*/.git" -prune -o \( -name "*test*.py" -o -name "*test*.js" -o -name "*test*.ts" -o -name "*test*.java" -o -name "*test*.go" -o -name "*test*.rs" -o -name "*spec*.py" -o -name "*spec*.js" -o -name "*spec*.ts" \) -mmin -30 -print 2>/dev/null | head -3 | while read -r file; do
+            [[ -n "$file" ]] && log_message "  Recent test file: $file"
+        done
         return 0
     fi
     

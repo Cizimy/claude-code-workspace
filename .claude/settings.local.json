@@ -97,7 +97,23 @@
       "Bash(export CLAUDE_TOOL_ARGS='{\"\"file_path\"\":\"\"/tmp/script_with_unused.py\"\",\"\"old_string\"\":\"\"Hello\"\",\"\"new_string\"\":\"\"Hi\"\"}')",
       "Bash(.claude/hooks/post-tool/unused-detector.sh:*)",
       "Bash(export CLAUDE_TOOL_NAME=\"Stop\")",
-      "Bash(.claude/hooks/stop/coverage-check.sh:*)"
+      "Bash(.claude/hooks/stop/coverage-check.sh:*)",
+      "Bash(source:*)",
+      "Bash(export CLAUDE_TOOL_ARGS='{\"\"file_path\"\": \"\"/home/kenic/projects/projects/pilot-test/src/auth.py\"\"}')",
+      "Bash(/home/kenic/projects/.claude/hooks/pre-tool/tdd-guard.sh:*)",
+      "Bash(export CLAUDE_TOOL_ARGS='{\"\"file_path\"\": \"\"/tmp/test_impl.py\"\"}')",
+      "Bash(export CLAUDE_TOOL_ARGS='{\"\"file_path\"\": \"\"/home/kenic/projects/projects/pilot-test/src/new_module.py\"\"}')",
+      "Bash(/tmp/test_tdd_guard.sh:*)",
+      "Bash(touch:*)",
+      "Bash(export CLAUDE_TOOL_ARGS='{\"\"file_path\"\": \"\"/home/kenic/projects/projects/pilot-test/src/new_feature.py\"\"}')",
+      "WebFetch(domain:www.gnu.org)",
+      "Bash(/home/kenic/projects/.claude/hooks/post-tool/unused-detector.sh:*)",
+      "Bash(export CLAUDE_TOOL_ARGS='{\"\"file_path\"\": \"\"/home/kenic/projects/projects/pilot-test/src/definitely_unused.py\"\"}')",
+      "Bash(/home/kenic/projects/.claude/hooks/stop/coverage-check.sh:*)",
+      "Bash(ruff check:*)",
+      "Bash(vulture:*)",
+      "Bash(coverage --version)",
+      "Bash(../../../.claude/hooks/pre-tool/tdd-guard.sh:*)"
     ],
     "deny": []
   }

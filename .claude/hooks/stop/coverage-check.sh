@@ -50,6 +50,8 @@ get_current_project() {
         echo "danbooru_advanced_wildcard"
     elif [[ "$current_dir" =~ pdi ]]; then
         echo "pdi"
+    elif [[ "$current_dir" =~ pilot-test ]]; then
+        echo "pilot-test"
     else
         echo "workspace"
     fi
@@ -374,6 +376,12 @@ main_coverage_check() {
                 return 1
             fi
             ;;
+        pilot-test)
+            local project_root="$WORKSPACE_ROOT/projects/pilot-test"
+            if ! check_python_coverage "$project_root" || ! check_change_scope "$project_root"; then
+                return 1
+            fi
+            ;;
         pdi)
             local project_root="$WORKSPACE_ROOT/pdi"
             if ! check_vba_coverage "$project_root" || ! check_change_scope "$project_root"; then
@@ -426,6 +434,19 @@ if ! main_coverage_check; then
             echo "   # または: uv run pytest --cov=src --cov-report=term-missing" >&2
             echo "3. 未テスト部分に対応するテストを実装" >&2
             echo "4. pytest未インストールの場合: pip install pytest pytest-cov" >&2
+            ;;
+        pilot-test)
+            echo "Pilot Test プロジェクトの要求事項:" >&2
+            echo "• テストカバレッジ: ${MIN_COVERAGE_THRESHOLD}% 以上" >&2
+            echo "• 実装変更時は対応するテストの追加・更新が必要" >&2
+            echo "• TDD ワークフローの厳格な遵守" >&2
+            echo "" >&2
+            echo "解決方法（Phase 5 検証版）:" >&2
+            echo "1. 不足しているテストケースを追加" >&2
+            echo "2. カバレッジ確認コマンド:" >&2
+            echo "   source venv/bin/activate && pytest --cov=src --cov-report=term-missing" >&2
+            echo "3. 未テスト部分に対応するテストを実装" >&2
+            echo "4. 環境設定: ./setup.sh で依存関係をインストール" >&2
             ;;
         pdi)
             echo "VBA プロジェクトの要求事項:" >&2

@@ -54,11 +54,16 @@ log_message "Checking for unused code in: $TARGET_FILE"
 # 対象外ファイルの除外
 is_analysis_exempt() {
     local file="$1"
+    local filename=$(basename "$file")
     
     # テストファイルは緩和（テスト用のヘルパー関数等があるため）
-    [[ "$file" =~ test.*\.(py|js|ts)$ ]] && return 0
-    [[ "$file" =~ .*test\.(py|js|ts)$ ]] && return 0
-    [[ "$file" =~ spec.*\.(py|js|ts)$ ]] && return 0
+    [[ "$filename" =~ ^test.*\.(py|js|ts)$ ]] && return 0
+    [[ "$filename" =~ .*_test\.(py|js|ts)$ ]] && return 0
+    [[ "$filename" =~ ^spec.*\.(py|js|ts)$ ]] && return 0
+    
+    # テストディレクトリ内のファイルは緩和
+    [[ "$file" =~ /tests?/ ]] && return 0
+    [[ "$file" =~ /spec/ ]] && return 0
     
     # 設定ファイル・ドキュメントは除外
     [[ "$file" =~ \.(md|txt|yml|yaml|json|xml|toml|ini|conf)$ ]] && return 0
@@ -88,6 +93,8 @@ get_project_root() {
         echo "$WORKSPACE_ROOT/danbooru_advanced_wildcard"
     elif [[ "$file" =~ pdi ]]; then
         echo "$WORKSPACE_ROOT/pdi"
+    elif [[ "$file" =~ pilot-test ]]; then
+        echo "$WORKSPACE_ROOT/projects/pilot-test"
     else
         echo "$WORKSPACE_ROOT"
     fi
@@ -105,7 +112,17 @@ detect_unused_python() {
     local issues=()
     
     # Phase 6 継続改善: vulture統合強化 (IMP-001対応)
-    if command -v vulture >/dev/null 2>&1; then
+    # Try to find vulture in project's virtual environment first
+    local vulture_cmd=""
+    if [[ -f "$PROJECT_ROOT/venv/bin/vulture" ]]; then
+        vulture_cmd="$PROJECT_ROOT/venv/bin/vulture"
+        log_message "Found vulture in project venv: $vulture_cmd"
+    elif command -v vulture >/dev/null 2>&1; then
+        vulture_cmd="vulture"
+        log_message "Found vulture in system PATH: $vulture_cmd"
+    fi
+
+    if [[ -n "$vulture_cmd" ]]; then
         log_message "Running vulture analysis on $file (Phase 6 強化版)"
         
         # プロジェクトルートの設定ファイル確認
@@ -124,10 +141,10 @@ detect_unused_python() {
         # vulture実行（設定ファイル考慮）
         local vulture_output
         if [[ -n "$vulture_config" ]]; then
-            vulture_output=$(vulture "$file" --config "$vulture_config" 2>/dev/null || true)
+            vulture_output=$("$vulture_cmd" "$file" --config "$vulture_config" 2>/dev/null || true)
         else
             # デフォルト設定で実行
-            vulture_output=$(vulture "$file" --min-confidence 80 2>/dev/null || true)
+            vulture_output=$("$vulture_cmd" "$file" --min-confidence 80 2>/dev/null || true)
         fi
         
         if [[ -n "$vulture_output" ]]; then
