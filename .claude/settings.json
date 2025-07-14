@@ -69,6 +69,10 @@
           {
             "type": "command",
             "command": "/home/kenic/projects/.claude/hooks/post-tool/unused-detector.sh"
+          },
+          {
+            "type": "command",
+            "command": "/home/kenic/projects/.claude/hooks/post-tool/security-check.sh"
           }
         ]
       }
