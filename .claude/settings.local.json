@@ -114,7 +114,9 @@
       "Bash(vulture:*)",
       "Bash(coverage --version)",
       "Bash(../../../.claude/hooks/pre-tool/tdd-guard.sh:*)",
-      "Bash(./setup.sh:*)"
+      "Bash(./setup.sh:*)",
+      "Bash(./../../../.claude/hooks/stop/coverage-check.sh:*)",
+      "Bash(/home/kenic/projects/.claude/hooks/post-tool/security-check.sh:*)"
     ],
     "deny": []
   }
