@@ -74,3 +74,24 @@ jobs:
           if [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
             pytest --cov=. --cov-fail-under=60 || true
           fi
+          
+      - name: Security scanning
+        run: |
+          # 基本的なセキュリティチェック
+          echo "Running basic security checks..."
+          
+          # Secretパターンの検出
+          if grep -rE "(password|api_key|secret|token)\s*=\s*[\"'][^\"']{6,}[\"']" . --include="*.py" --include="*.js" --include="*.ts" --exclude-dir=".git" --exclude-dir="node_modules" --exclude-dir="venv" --exclude-dir="__pycache__" | grep -v test; then
+            echo "⚠️  Potential secrets detected in code"
+            echo "Please review and remove any hardcoded secrets"
+            exit 1
+          fi
+          
+          # プライベートキーの検出
+          if grep -rE "-----BEGIN [A-Z ]+-----" . --include="*.py" --include="*.js" --include="*.ts" --exclude-dir=".git" --exclude-dir="node_modules" --exclude-dir="venv" --exclude-dir="__pycache__" | grep -v test; then
+            echo "⚠️  Private keys detected in code"
+            echo "Please remove private keys from repository"
+            exit 1
+          fi
+          
+          echo "✅ Basic security checks passed"

@@ -233,10 +233,150 @@ jobs:
             fi
           done
 
+  front-matter-validation:
+    runs-on: ubuntu-latest
+    name: Front-Matter Validation (ADR-005)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python for schema validation
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install JSON schema validation tools
+        run: |
+          pip install jsonschema pyyaml
+      
+      - name: Validate Front-Matter compliance
+        run: |
+          echo "🔍 Validating Front-Matter compliance (ADR-005)..."
+          
+          # Front-Matter検証用のPythonスクリプト作成
+          cat > validate_frontmatter.py << 'EOF'
+          import os
+          import yaml
+          import json
+          import jsonschema
+          import sys
+          from pathlib import Path
+          
+          def extract_frontmatter(file_path):
+              """Markdownファイルからfront-matterを抽出"""
+              with open(file_path, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              
+              if not content.startswith('---'):
+                  return None
+              
+              try:
+                  # Front-matter部分を抽出
+                  end_marker = content.find('---', 3)
+                  if end_marker == -1:
+                      return None
+                  
+                  frontmatter_content = content[3:end_marker].strip()
+                  return yaml.safe_load(frontmatter_content)
+              except Exception as e:
+                  print(f"❌ YAML parse error in {file_path}: {e}")
+                  return None
+          
+          def validate_schema(frontmatter, schema_path):
+              """JSON schemaでfront-matterを検証"""
+              try:
+                  with open(schema_path, 'r') as f:
+                      schema = json.load(f)
+                  
+                  jsonschema.validate(frontmatter, schema)
+                  return True
+              except jsonschema.ValidationError as e:
+                  print(f"❌ Schema validation error: {e.message}")
+                  return False
+              except Exception as e:
+                  print(f"❌ Validation error: {e}")
+                  return False
+          
+          def main():
+              validation_failed = False
+              
+              # Markdownファイルを検索
+              for md_file in Path('.').rglob('*.md'):
+                  if '.git' in str(md_file) or 'node_modules' in str(md_file):
+                      continue
+                  
+                  print(f"Checking {md_file}...")
+                  
+                  frontmatter = extract_frontmatter(md_file)
+                  if not frontmatter:
+                      print(f"⚠️  No front-matter found in {md_file}")
+                      continue
+                  
+                  # 必須フィールドチェック
+                  required_fields = ['title', 'status', 'category', 'created', 'updated']
+                  missing_fields = [field for field in required_fields if field not in frontmatter]
+                  
+                  if missing_fields:
+                      print(f"❌ Missing required fields in {md_file}: {missing_fields}")
+                      validation_failed = True
+                  
+                  # Statusの値チェック
+                  valid_statuses = ['draft', 'active', 'deprecated', 'proposed', 'accepted', 'rejected', 'superseded']
+                  if frontmatter.get('status') not in valid_statuses:
+                      print(f"❌ Invalid status in {md_file}: {frontmatter.get('status')}")
+                      validation_failed = True
+                  
+                  # Categoryの値チェック
+                  valid_categories = ['governance', 'operations', 'reference', 'templates', 'quickstart']
+                  if frontmatter.get('category') not in valid_categories:
+                      print(f"❌ Invalid category in {md_file}: {frontmatter.get('category')}")
+                      validation_failed = True
+                  
+                  if not validation_failed:
+                      print(f"✅ Front-matter valid: {md_file}")
+              
+              if validation_failed:
+                  print("❌ Front-matter validation failed")
+                  sys.exit(1)
+              else:
+                  print("✅ All front-matter validation passed")
+          
+          if __name__ == "__main__":
+              main()
+          EOF
+          
+          python validate_frontmatter.py
+          
+      - name: Check document complexity metrics
+        run: |
+          echo "🔍 Checking document complexity metrics..."
+          
+          # 500行制限チェック
+          find . -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" | while read file; do
+            line_count=$(wc -l < "$file")
+            if [ "$line_count" -gt 500 ]; then
+              echo "⚠️  WARNING: Document exceeds 500 lines: $file ($line_count lines)"
+              echo "   Consider splitting into smaller documents per ADR-005"
+            else
+              echo "✅ Document size OK: $file ($line_count lines)"
+            fi
+          done
+          
+          # 内部リンク数チェック（簡易版）
+          find . -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" | while read file; do
+            link_count=$(grep -o '\[.*\](.*)' "$file" | grep -c '\.md' || true)
+            if [ "$link_count" -gt 10 ]; then
+              echo "⚠️  WARNING: Document has many internal links: $file ($link_count links)"
+              echo "   Consider simplifying link structure per ADR-005"
+            else
+              echo "✅ Link count OK: $file ($link_count links)"
+            fi
+          done
+
   governance-summary:
     runs-on: ubuntu-latest
     name: Governance Health Check
-    needs: [adr-validation, file-naming-lint, governance-links]
+    needs: [adr-validation, file-naming-lint, governance-links, front-matter-validation]
     if: always()
     steps:
       - name: Checkout code
@@ -267,6 +407,7 @@ jobs:
           echo "- ADR Validation: ${{ needs.adr-validation.result }}"
           echo "- File Naming: ${{ needs.file-naming-lint.result }}"
           echo "- Link Validation: ${{ needs.governance-links.result }}"
+          echo "- Front-Matter Validation (ADR-005): ${{ needs.front-matter-validation.result }}"
           
           echo ""
           echo "✅ Governance CI completed"
